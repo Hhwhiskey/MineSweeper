@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/new_game"
+        android:orderInCategory="1"
+        android:icon="@drawable/ic_new_game"
+        android:title="New Game"
+        app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/give_up"
+        android:orderInCategory="2"
+        android:title="Give Up"
+        android:icon="@drawable/ic_giveup"
+        app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/stats"
+        android:orderInCategory="3"
+        android:icon="@drawable/ic_stats"
+        android:title="Stats"
+        app:showAsAction="always"/>
+
+    <item android:id="@+id/about"
+        android:title="About"
+        android:orderInCategory="1"
+        app:showAsAction="never"/>
+
+    <item android:id="@+id/faq"
+        android:title="FAQ"
+        android:orderInCategory="1"
+        app:showAsAction="never"/>
+</menu>
+
+
+
