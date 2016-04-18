@@ -20,10 +20,6 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         ///////////////////////////////////////////////////////////////////////////
-
-
-
-
     }
 
     // Google recommends the use of the Toolbar in place of the action bar to support older devices.
