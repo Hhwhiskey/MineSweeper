@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.kevinhodges.minesweeper.MainActivity">
+    tools:context=".activities.MainActivity">
 
     <include
         android:id="@+id/toolbar"
@@ -95,23 +95,32 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/imageView"
-        android:src="@drawable/ic_win_face"
+        android:src="@drawable/ic_win_white"
         android:layout_gravity="center_horizontal"
         android:layout_centerHorizontal="true"
         android:layout_below="@+id/toolbar"
         android:layout_marginTop="16dp"
-        android:layout_above="@+id/tl_mine_board" />
+        android:layout_above="@+id/layout_game_board" />
 
-    <TableLayout
-        android:id="@+id/tl_mine_board"
-        android:layout_width="match_parent"
+    <RelativeLayout
+        android:id="@+id/layout_game_board"
         android:layout_height="match_parent"
-        android:layout_span="3"
-        android:stretchColumns="*"
-        android:gravity="bottom"
-        android:padding="5dip"
+        android:layout_width="match_parent"
         android:layout_below="@+id/linearLayout"
         android:layout_margin="16dp">
-    </TableLayout>
+
+        <TableLayout
+            android:id="@+id/table_game_board"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="bottom"
+            android:padding="5dip"
+            android:showDividers="middle|beginning|end"
+            android:orientation="horizontal">
+
+
+        </TableLayout>
+
+    </RelativeLayout>
 
 </RelativeLayout>
