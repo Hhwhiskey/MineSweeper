@@ -32,8 +32,8 @@
     <Button
         android:layout_width="125dp"
         android:layout_height="wrap_content"
-        android:text="Stats"
-        android:id="@+id/button3"
+        android:text="Leaderboards"
+        android:id="@+id/bttn_leaderboards"
         android:layout_below="@+id/button2"
         android:layout_alignLeft="@+id/button2"
         android:layout_alignStart="@+id/button2"

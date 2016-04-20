@@ -3,9 +3,12 @@ package com.kevinhodges.minesweeper.activities;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
+import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -18,13 +21,18 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.kevinhodges.minesweeper.R;
 import com.kevinhodges.minesweeper.model.Block;
 
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
 
+    private static final int RC_SIGN_IN = 9001;
     private int newGameDifficulty;
     private TableLayout tableLayout;
     private int totalRows;
@@ -38,12 +46,26 @@ public class MainActivity extends AppCompatActivity {
     private boolean firstClick = true;
     private ImageView smileyFaceIV;
     private Boolean isGameOver = false;
+    private GoogleApiClient mGoogleApiClient;
+    private Menu menu;
+    private SharedPreferences sharedPreferences;
+    private SharedPreferences.Editor editor;
+    private boolean isUserSignedOut;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build();
+
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                .build();
 
         Intent getIntent = getIntent();
         newGameDifficulty = getIntent.getIntExtra("newGameDifficulty", 0);
@@ -52,6 +74,9 @@ public class MainActivity extends AppCompatActivity {
         secondsPassed = 0;
 
         Block.MINE_COUNT = 0;
+
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        editor = sharedPreferences.edit();
 
         //UI Declarations///////////////////////////////////////////////////////////
         // Google suggests the use of the Toolbar in place of the action bar to support older devices.
@@ -95,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
                     public void run() {
                         smileyFaceIV.setImageResource(R.drawable.ic_smiley_happy);
                     }
-                }, 500);
+                }, 250);
             }
         });
 
@@ -109,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Show the proper number of mines based on difficulty
-        switch(newGameDifficulty) {
+        switch (newGameDifficulty) {
             case 1:
                 mineCountTV.setText(String.valueOf(10));
                 break;
@@ -127,6 +152,14 @@ public class MainActivity extends AppCompatActivity {
             createNewGameBoard(newGameDifficulty);
         }
         /////////////////////////////////////////////////////////////////////////////////////
+
+        signIn();
+
+    }
+
+    private void signIn() {
+        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+        startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
 
@@ -302,28 +335,76 @@ public class MainActivity extends AppCompatActivity {
 
         for (int i = 0; i < totalMines; i++) {
 
+            // Generate random positions for rows and columns
             mineRow = random.nextInt(totalRows);
             mineCol = random.nextInt(totalColumns);
 
-            // Check to make sure mine is not placed where the user first clicks
+            // Check to make sure mine is not placed where the user first clicks subtract mine from total
             if (mineRow == row && mineCol == col) {
                 i--;
-                Toast.makeText(MainActivity.this, "Bomb was going to be placed here", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Mine was going to be placed here", Toast.LENGTH_SHORT).show();
 
-                // Check to make sure the block is not already a mine
+                // Check to make sure the block is not already a mine, if so, subtract mine from total
             } else if (blocks[mineRow][mineCol].isMine()) {
                 i--;
 
-                // If both tests pass, plant the mine
             } else {
+                // If both tests pass, plant the mine
                 blocks[mineRow][mineCol].plantMine();
             }
         }
+
+        // Call to method that will count mines and display the correct value on the blocks
+        countAdjacentMines();
 
         // Update the mine count textView
         updateMineCount();
     }
 
+    private void countAdjacentMines() {
+
+        // Set i to 0. While it's less than blocks.length do next and ++
+        for (int i = 0; i < blocks[totalRows][totalColumns].length(); i++) {
+
+            // Set j to 0. While it's less than blocks.length do next and ++
+            for (int j = 0; j < blocks[totalRows][totalColumns].length(); j++) {
+
+                // If the current block is not a mine, do next
+                if (!blocks[i][j].isMine()) {
+
+                    // Create a counter for mine count, starting at 0
+                    int currentMineCount = 0;
+
+                    // Set p to i-1 and do next until p is == i+1 (Max of 3 times)
+                    for (int p = i - 1; p <= i + 1; p++) {
+
+                        // Set q to j-1 and do next until q is == j +1 (Max of 3 times)
+                        for (int q = j - 1; q <= j + 1; q++) {
+
+                            // If 0 is less/equal to value of p
+                            if (0 <= p
+
+                                    // && p is less than blocks.length
+                                    && p < blocks[totalRows][totalColumns].length()
+
+                                    //&& 0 is less/equal
+                                    && 0 <= q
+
+                                    //  && q is less than blocks.length
+                                    && q < blocks[totalRows][totalColumns].length()) {
+
+                                // If block at p/q is a mine, add 1 to currentMineCount
+                                if (blocks[p][q].isMine())
+                                    ++currentMineCount;
+                            }
+                        }
+                    }
+
+                    blocks[i][j].showAdjacentMineCount(currentMineCount);
+                }
+            }
+        }
+    }
 
     // Starts the game time when the first block is clicked
     public void startTimer() {
@@ -368,7 +449,7 @@ public class MainActivity extends AppCompatActivity {
     // Game over: Vibrate, stop timer, show all bombs, restart game on another click
     public void loseGame() {
 
-        Toast.makeText(MainActivity.this, "Boom!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(MainActivity.this, "BOOM!", Toast.LENGTH_SHORT).show();
 
         Vibrator v = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
         v.vibrate(1000);
@@ -386,6 +467,12 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+    }
+
+    public void winGame(double finishTime) {
+
+        //// TODO: 4/20/2016
+//        Games.Leaderboards.submitScore(mGoogleApiClient, LEADERBOARD_ID, 1337);
     }
 
 
@@ -420,7 +507,7 @@ public class MainActivity extends AppCompatActivity {
                                     switch (which) {
 
                                         case 0:
-                                            Toast.makeText(MainActivity.this, "Easy", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(MainActivity.this, "Easy: 9 x 9 with 10 mines", Toast.LENGTH_SHORT).show();
 //
                                             Intent easyGameIntent = getIntent();
                                             easyGameIntent.putExtra("newGameDifficulty", 1);
@@ -429,7 +516,7 @@ public class MainActivity extends AppCompatActivity {
                                             break;
 
                                         case 1:
-                                            Toast.makeText(MainActivity.this, "Medium", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(MainActivity.this, "Medium: 15 x 15 with 20 mines", Toast.LENGTH_SHORT).show();
 
                                             Intent mediumGameIntent = getIntent();
                                             mediumGameIntent.putExtra("newGameDifficulty", 2);
@@ -438,7 +525,7 @@ public class MainActivity extends AppCompatActivity {
                                             break;
 
                                         case 2:
-                                            Toast.makeText(MainActivity.this, "Hard", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(MainActivity.this, "Hard: 20 x 20 with 40 mines", Toast.LENGTH_SHORT).show();
 
                                             Intent hardGameIntent = getIntent();
                                             hardGameIntent.putExtra("newGameDifficulty", 3);
@@ -492,19 +579,89 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (id == R.id.stats) {
+
+            Intent leaderboardsButton = new Intent(MainActivity.this, LeaderBoardsActivity.class);
+            startActivity(leaderboardsButton);
+
             return true;
         }
 
         if (id == R.id.about) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Mine Sweeper");
+            builder.setMessage("This application was created by Kevin Hodges " +
+                    "for a JP Morgan & Chase code assessment. It incorporates all of the tried" +
+                    " and true Mine Sweeper game play that you have grown to love, with a new, " +
+                    "polished, material design look.");
+
+            builder.setPositiveButton("Leave Feedback", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+
+                }
+            });
+
+            builder.setNegativeButton("Ok", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+
+                }
+            });
+
+            builder.show();
+
             return true;
         }
 
         if (id == R.id.faq) {
+            Intent faqIntent = new Intent(MainActivity.this, FAQActivity.class);
+            startActivity(faqIntent);
             return true;
         }
 
+
+
         return super.onOptionsItemSelected(item);
     }
+
+//    private void signOut() {
+//
+//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//        builder.setTitle("Log out");
+//        builder.setMessage("Are you sure you would like to sign out of Google Play Services? " +
+//                "You will not be able to track your high scores, stats or view leaderboards.");
+//
+//        builder.setPositiveButton("Sign out", new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//
+//                Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
+//                        new ResultCallback<Status>() {
+//                            @Override
+//                            public void onResult(Status status) {
+//                                Toast.makeText(MainActivity.this,
+//                                        "You have been signed out of Google Play Services",
+//                                        Toast.LENGTH_SHORT).show();
+//
+//                                editor.putBoolean("isUserSignedOut", true);
+//                                editor.commit();
+//                            }
+//                        });
+//
+//
+//            }
+//        });
+//
+//        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//
+//            }
+//        });
+//
+//        builder.show();
+//
+//    }
 
     @Override
     protected void onResume() {
@@ -516,5 +673,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         stopTimer();
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Toast.makeText(MainActivity.this,
+                "Unable to connect to Google Play Services. Please check your network settings.",
+                Toast.LENGTH_LONG).show();
     }
 }

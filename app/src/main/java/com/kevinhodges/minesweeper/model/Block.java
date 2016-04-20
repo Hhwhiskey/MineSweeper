@@ -78,6 +78,48 @@ public class Block extends Button {
         }
     }
 
+    public void showAdjacentMineCount(int mines) {
+
+       switch(mines) {
+           case 1:
+               this.setBackgroundResource(R.drawable.number_1);
+               break;
+
+           case 2:
+               this.setBackgroundResource(R.drawable.number_2);
+
+               break;
+
+           case 3:
+               this.setBackgroundResource(R.drawable.number_3);
+
+               break;
+
+           case 4:
+               this.setBackgroundResource(R.drawable.number_4);
+               break;
+
+           case 5:
+               this.setBackgroundResource(R.drawable.number_5);
+               break;
+
+           case 6:
+               this.setBackgroundResource(R.drawable.number_6);
+               break;
+
+           case 7:
+               this.setBackgroundResource(R.drawable.number_7);
+               break;
+
+           case 8:
+               this.setBackgroundResource(R.drawable.number_8);
+               break;
+
+           default:
+
+       }
+    }
+
     // Returns mine status
     public boolean isMine() {
         return isMine;

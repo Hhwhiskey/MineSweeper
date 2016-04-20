@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">Mine Sweeper</string>
+
+    //Leaderboard values
+    <string name="app_id">119585823884</string>
+    <string name="package_name">com.kevinhodges.minesweeper</string>
+    <string name="leaderboard_easy">CgkIjLn7vr0DEAIQAA</string>
+    <string name="leaderboard_medium">CgkIjLn7vr0DEAIQAQ</string>
+    <string name="leaderboard_hard">CgkIjLn7vr0DEAIQAg</string>
+    <string name="leaderboard_win_ratio">CgkIjLn7vr0DEAIQBg</string>
+    <string name="event_games_won">CgkIjLn7vr0DEAIQBA</string>
+    <string name="event_total_games">CgkIjLn7vr0DEAIQBQ</string>
 </resources>
