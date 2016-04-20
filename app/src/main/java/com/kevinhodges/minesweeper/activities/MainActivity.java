@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -21,18 +20,13 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.auth.api.Auth;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.kevinhodges.minesweeper.R;
 import com.kevinhodges.minesweeper.model.Block;
 
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
+public class MainActivity extends AppCompatActivity {
 
-    private static final int RC_SIGN_IN = 9001;
     private int newGameDifficulty;
     private TableLayout tableLayout;
     private int totalRows;
@@ -46,7 +40,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     private boolean firstClick = true;
     private ImageView smileyFaceIV;
     private Boolean isGameOver = false;
-    private GoogleApiClient mGoogleApiClient;
     private Menu menu;
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
@@ -57,15 +50,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail()
-                .build();
-
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
-                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-                .build();
 
         Intent getIntent = getIntent();
         newGameDifficulty = getIntent.getIntExtra("newGameDifficulty", 0);
@@ -153,15 +137,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
         }
         /////////////////////////////////////////////////////////////////////////////////////
 
-        signIn();
 
     }
-
-    private void signIn() {
-        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
-        startActivityForResult(signInIntent, RC_SIGN_IN);
-    }
-
 
     // Method to update the mine count textView
     public void updateMineCount() {
@@ -673,12 +650,5 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
     protected void onPause() {
         super.onPause();
         stopTimer();
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Toast.makeText(MainActivity.this,
-                "Unable to connect to Google Play Services. Please check your network settings.",
-                Toast.LENGTH_LONG).show();
     }
 }

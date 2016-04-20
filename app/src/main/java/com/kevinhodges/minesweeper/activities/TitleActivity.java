@@ -3,7 +3,6 @@ package com.kevinhodges.minesweeper.activities;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -11,14 +10,11 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.kevinhodges.minesweeper.R;
 
-public class TitleActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
+public class TitleActivity extends AppCompatActivity  {
 
-    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 0;
+
     private Button newGameButton;
     private Button leaderBoardsButton;
 
@@ -49,25 +45,6 @@ public class TitleActivity extends AppCompatActivity implements GoogleApiClient.
             }
         });
 
-        checkPlayServices();
-    }
-
-
-
-    private boolean checkPlayServices() {
-        GoogleApiAvailability gApi = GoogleApiAvailability.getInstance();
-        int resultCode = gApi.isGooglePlayServicesAvailable(this);
-
-        if (resultCode != ConnectionResult.SUCCESS) {
-            if (gApi.isUserResolvableError(resultCode)) {
-                gApi.getErrorDialog(this, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST).show();
-            } else {
-                Toast.makeText(this, "Unable to connect to Google Play Services", Toast.LENGTH_LONG).show();
-                finish();
-            }
-            return false;
-        }
-        return true;
     }
 
     public void startNewGameDialog() {
@@ -113,11 +90,5 @@ public class TitleActivity extends AppCompatActivity implements GoogleApiClient.
                     }
                 });
         difficultyDialog.create().show();
-    }
-
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
     }
 }
