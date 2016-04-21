@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="50dp">
+
+    <TableRow
+        android:id="@+id/hr"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#444"
+        android:layout_marginRight="16dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginLeft="16dp" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignRight="@+id/hr"
+        android:layout_alignEnd="@+id/hr"
+        android:layout_alignStart="@+id/cr_user_name"
+        android:layout_alignBottom="@+id/hr"
+        android:layout_marginLeft="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Kevin"
+            android:id="@+id/cr_user_name"
+            android:gravity="center"
+            android:textSize="16dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignLeft="@+id/hr"
+            android:layout_alignStart="@+id/hr"
+            android:layout_weight="1"
+            android:layout_marginLeft="2dp"
+            android:layout_marginRight="2dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="245 Seconds"
+            android:id="@+id/cr_best_time"
+            android:gravity="center"
+            android:textSize="16dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignLeft="@+id/hr"
+            android:layout_alignStart="@+id/hr"
+            android:layout_weight="1"
+            android:layout_marginLeft="2dp"
+            android:layout_marginRight="2dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="25"
+            android:id="@+id/cr_games_won"
+            android:gravity="center"
+            android:textSize="16dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignLeft="@+id/hr"
+            android:layout_alignStart="@+id/hr"
+            android:layout_weight="1"
+            android:layout_marginLeft="2dp"
+            android:layout_marginRight="2dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="75"
+            android:id="@+id/cr_games_played"
+            android:gravity="center"
+            android:textSize="16dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignLeft="@+id/hr"
+            android:layout_alignStart="@+id/hr"
+            android:layout_weight="1"
+            android:layout_marginLeft="2dp"
+            android:layout_marginRight="2dp" />
+    </LinearLayout>
+
+</RelativeLayout>

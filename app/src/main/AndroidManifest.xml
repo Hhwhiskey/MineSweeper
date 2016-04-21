@@ -19,7 +19,8 @@
         </activity>
         <activity android:name=".activities.MainActivity" />
         <activity android:name=".activities.FAQActivity" />
-        <activity android:name=".activities.LeaderBoardsActivity"></activity>
+        <activity android:name=".activities.LeaderBoardsActivity" />
+        <activity android:name=".activities.UserActivity"/>
     </application>
 
 </manifest>

@@ -2,21 +2,30 @@ package com.kevinhodges.minesweeper.activities;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.kevinhodges.minesweeper.R;
 
-public class TitleActivity extends AppCompatActivity  {
+
+public class TitleActivity extends AppCompatActivity {
 
 
     private Button newGameButton;
     private Button leaderBoardsButton;
+    private TextView sweeperTV;
+    private TextView currentUserTV;
+    private SharedPreferences sharedPreferences;
+    private SharedPreferences.Editor editor;
+    private String mCurrentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,10 +34,20 @@ public class TitleActivity extends AppCompatActivity  {
 
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        editor = sharedPreferences.edit();
+
         //UI Declarations///////////////////////////////////////////////////////////
         newGameButton = (Button) findViewById(R.id.bttn_new_game);
         leaderBoardsButton = (Button) findViewById(R.id.bttn_leaderboards);
+        sweeperTV = (TextView) findViewById(R.id.tv_current_sweeper);
+        currentUserTV = (TextView) findViewById(R.id.tv_current_user);
         ///////////////////////////////////////////////////////////////////////////
+
+        if (currentUserTV != null) {
+            currentUserTV.setText(mCurrentUser);
+        }
+
 
         newGameButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -42,6 +61,22 @@ public class TitleActivity extends AppCompatActivity  {
             public void onClick(View v) {
                 Intent leaderboardsButton = new Intent(TitleActivity.this, LeaderBoardsActivity.class);
                 startActivity(leaderboardsButton);
+            }
+        });
+
+        sweeperTV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent userActivity = new Intent(TitleActivity.this, UserActivity.class);
+                startActivity(userActivity);
+            }
+        });
+
+        currentUserTV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent userActivity = new Intent(TitleActivity.this, UserActivity.class);
+                startActivity(userActivity);
             }
         });
 
@@ -90,5 +125,14 @@ public class TitleActivity extends AppCompatActivity  {
                     }
                 });
         difficultyDialog.create().show();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        mCurrentUser = sharedPreferences.getString("currentUser", "");
+
+        currentUserTV.setText(mCurrentUser);
     }
 }

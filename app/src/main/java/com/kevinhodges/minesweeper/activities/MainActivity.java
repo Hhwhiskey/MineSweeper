@@ -1,5 +1,6 @@
 package com.kevinhodges.minesweeper.activities;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,9 +12,11 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AutoCompleteTextView;
 import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -44,12 +47,19 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
     private boolean isUserSignedOut;
+    private AlertDialog.Builder builder;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Global dialog and shared prefs////////////////////////////////////////////////
+        builder = new AlertDialog.Builder(this);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        editor = sharedPreferences.edit();
+        ////////////////////////////////////////////////////////////////////////////////
 
         Intent getIntent = getIntent();
         newGameDifficulty = getIntent.getIntExtra("newGameDifficulty", 0);
@@ -59,8 +69,6 @@ public class MainActivity extends AppCompatActivity {
 
         Block.MINE_COUNT = 0;
 
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        editor = sharedPreferences.edit();
 
         //UI Declarations///////////////////////////////////////////////////////////
         // Google suggests the use of the Toolbar in place of the action bar to support older devices.
@@ -446,10 +454,28 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void winGame(double finishTime) {
+    public void enterNewScore(final double finishTime) {
 
-        //// TODO: 4/20/2016
-//        Games.Leaderboards.submitScore(mGoogleApiClient, LEADERBOARD_ID, 1337);
+        final Dialog newScoreDialog = new Dialog(MainActivity.this);
+        newScoreDialog.setContentView(R.layout.dialog_new_score);
+
+        AutoCompleteTextView nickNameAC = (AutoCompleteTextView) newScoreDialog.findViewById(R.id.ac_nickname);
+        TextView newScoreTV = (TextView) newScoreDialog.findViewById(R.id.tv_enter_score);
+
+        final Editable nickName = nickNameAC.getText();
+
+        if (newScoreTV != null) {
+            newScoreTV.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(MainActivity.this, nickName + " with a time of " + finishTime, Toast.LENGTH_SHORT).show();
+                    newScoreDialog.dismiss();
+
+
+                }
+            });
+        }
+        newScoreDialog.show();
     }
 
 
@@ -465,10 +491,9 @@ public class MainActivity extends AppCompatActivity {
 
         if (id == R.id.new_game) {
 
-            AlertDialog.Builder newGameDialog = new AlertDialog.Builder(this);
-            newGameDialog.setTitle("New Game");
-            newGameDialog.setMessage("Would you like to start a new game? Current game will be lost");
-            newGameDialog.setPositiveButton("New Game", new DialogInterface.OnClickListener() {
+            builder.setTitle("New Game");
+            builder.setMessage("Would you like to start a new game? Current game will be lost");
+            builder.setPositiveButton("New Game", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
 
@@ -516,14 +541,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
-            newGameDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
 
                 }
             });
 
-            newGameDialog.show();
+            builder.show();
 
             return true;
         }
@@ -557,14 +582,15 @@ public class MainActivity extends AppCompatActivity {
 
         if (id == R.id.stats) {
 
-            Intent leaderboardsButton = new Intent(MainActivity.this, LeaderBoardsActivity.class);
-            startActivity(leaderboardsButton);
+//            Intent leaderboardsButton = new Intent(MainActivity.this, LeaderBoardsActivity.class);
+//            startActivity(leaderboardsButton);
+            enterNewScore(20.00);
+
 
             return true;
         }
 
         if (id == R.id.about) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("Mine Sweeper");
             builder.setMessage("This application was created by Kevin Hodges " +
                     "for a JP Morgan & Chase code assessment. It incorporates all of the tried" +
@@ -597,48 +623,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-
         return super.onOptionsItemSelected(item);
     }
 
-//    private void signOut() {
-//
-//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//        builder.setTitle("Log out");
-//        builder.setMessage("Are you sure you would like to sign out of Google Play Services? " +
-//                "You will not be able to track your high scores, stats or view leaderboards.");
-//
-//        builder.setPositiveButton("Sign out", new DialogInterface.OnClickListener() {
-//            @Override
-//            public void onClick(DialogInterface dialog, int which) {
-//
-//                Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
-//                        new ResultCallback<Status>() {
-//                            @Override
-//                            public void onResult(Status status) {
-//                                Toast.makeText(MainActivity.this,
-//                                        "You have been signed out of Google Play Services",
-//                                        Toast.LENGTH_SHORT).show();
-//
-//                                editor.putBoolean("isUserSignedOut", true);
-//                                editor.commit();
-//                            }
-//                        });
-//
-//
-//            }
-//        });
-//
-//        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-//            @Override
-//            public void onClick(DialogInterface dialog, int which) {
-//
-//            }
-//        });
-//
-//        builder.show();
-//
-//    }
 
     @Override
     protected void onResume() {
