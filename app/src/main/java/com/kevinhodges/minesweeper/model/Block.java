@@ -15,6 +15,7 @@ public class Block extends Button {
     private boolean isMine;
     private boolean isRevealed;
     private boolean isFlagged;
+    private int numberOfAdjacentMines;
     private int value;
     private int xAxis;
     private int yAxis;
@@ -35,6 +36,7 @@ public class Block extends Button {
         isMine = false;
         isFlagged = false;
         isRevealed = false;
+        numberOfAdjacentMines = 0;
         value = 0;
 
         this.setBackgroundResource(R.drawable.covered_block);
@@ -66,6 +68,10 @@ public class Block extends Button {
 
         if (isMine) {
             this.setBackgroundResource(R.drawable.ic_explosion);
+
+        } else if (numberOfAdjacentMines > 0) {
+            showAdjacentMineCount(numberOfAdjacentMines);
+
         } else {
             this.setBackgroundResource(R.drawable.uncovered_block);
         }
@@ -79,6 +85,8 @@ public class Block extends Button {
     }
 
     public void showAdjacentMineCount(int mines) {
+
+        isRevealed = true;
 
        switch(mines) {
            case 1:
@@ -120,6 +128,14 @@ public class Block extends Button {
        }
     }
 
+    public int getNumberOfAdjacentMines() {
+        return numberOfAdjacentMines;
+    }
+
+    public void setNumberOfAdjacentMines(int numOfMines) {
+        this.numberOfAdjacentMines = numOfMines;
+    }
+
     // Returns mine status
     public boolean isMine() {
         return isMine;
@@ -128,6 +144,10 @@ public class Block extends Button {
     // Returns hidden status
     public boolean isRevealed() {
         return isRevealed;
+    }
+
+    public void setRevealed(boolean revealed) {
+        isRevealed = revealed;
     }
 
     // Returns flagged status
@@ -149,6 +169,7 @@ public class Block extends Button {
     public int getValue() {
         return 0;
     }
+
 
 
 }

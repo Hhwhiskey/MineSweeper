@@ -30,6 +30,7 @@ import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = "MainActivity";
     private int newGameDifficulty;
     private TableLayout tableLayout;
     private int totalRows;
@@ -48,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences.Editor editor;
     private boolean isUserSignedOut;
     private AlertDialog.Builder builder;
+    private boolean[][] isBlockVisited;
 
 
     @Override
@@ -105,6 +107,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 smileyFaceIV.setImageResource(R.drawable.ic_smiley_worried);
+
+                Intent easyGameIntent = getIntent();
+                easyGameIntent.putExtra("newGameDifficulty", newGameDifficulty);
+                finish();
+                startActivity(easyGameIntent);
 
                 final Handler handler = new Handler();
                 handler.postDelayed(new Runnable() {
@@ -183,6 +190,8 @@ public class MainActivity extends AppCompatActivity {
 
         //setup the blocks array
         blocks = new Block[totalRows][totalColumns];
+        // Create a 2d boolean array that matches the size of the game board for our recursive function
+        isBlockVisited = new boolean[totalRows][totalColumns];
 
         //for every row
         for (int row = 0; row < totalRows; row++) {
@@ -246,15 +255,17 @@ public class MainActivity extends AppCompatActivity {
                             // If click is the first click, place all mines
                             if (firstClick) {
                                 placeMinesOnBoard(curRow, curCol);
-                            }
+                                revealBlock(blocks, curRow, curCol);
+                                // Start the game timer on first click
+                                startTimer();
 
-                            // Flip the block over when it's pressed if it's not flagged by user
-                            if (!blocks[curRow][curCol].isFlagged()) {
-                                blocks[curRow][curCol].flipBlock();
-                            }
+                            } else {
 
-                            // Start the game timer on first click
-                            startTimer();
+                                if (!blocks[curRow][curCol].isFlagged()) {
+                                    blocks[curRow][curCol].flipBlock();
+                                }
+
+                            }
                         }
                     }
                 });
@@ -310,6 +321,46 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Will cascade blocks adjacent to the one that is touched, until they come near mines
+    public void revealBlock(Block[][] blocks, int x, int y) {
+
+        //Set global first click to false to alter click functions
+        firstClick = false;
+
+        // Exit for oob
+        if (x > totalRows - 1 || x < 0 || y > totalColumns - 1 || y < 0) {
+            return;
+        }
+
+        // Show the block in question and mark it as revealed
+        blocks[x][y].flipBlock();
+        blocks[x][y].setRevealed(true);
+
+        // Exit if this block is checked
+        if (isBlockVisited[x][y]) {
+            return;
+        }
+
+        // If this point is reached, set the block corresponding to this index to true
+        isBlockVisited[x][y] = true;
+
+        // If block is not a mine and does not border any mines
+        if (!blocks[x][y].isMine() && blocks[x][y].getNumberOfAdjacentMines() == 0) {
+
+            // Check in all 8 directions from the current block
+            revealBlock(blocks, x - 1, y - 1);
+            revealBlock(blocks, x - 1, y);
+            revealBlock(blocks, x - 1, y + 1);
+            revealBlock(blocks, x, y - 1);
+            revealBlock(blocks, x, y);
+            revealBlock(blocks, x, y + 1);
+            revealBlock(blocks, x + 1, y - 1);
+            revealBlock(blocks, x + 1, y);
+            revealBlock(blocks, x + 1, y + 1);
+
+        }
+    }
+
     public void placeMinesOnBoard(int row, int col) {
 
         int mineRow;
@@ -349,10 +400,12 @@ public class MainActivity extends AppCompatActivity {
     private void countAdjacentMines() {
 
         // Set i to 0. While it's less than blocks.length do next and ++
-        for (int i = 0; i < blocks[totalRows][totalColumns].length(); i++) {
+        int i;
+        int j;
+        for (i = 0; i < totalRows; i++) {
 
             // Set j to 0. While it's less than blocks.length do next and ++
-            for (int j = 0; j < blocks[totalRows][totalColumns].length(); j++) {
+            for (j = 0; j < totalColumns; j++) {
 
                 // If the current block is not a mine, do next
                 if (!blocks[i][j].isMine()) {
@@ -361,22 +414,15 @@ public class MainActivity extends AppCompatActivity {
                     int currentMineCount = 0;
 
                     // Set p to i-1 and do next until p is == i+1 (Max of 3 times)
-                    for (int p = i - 1; p <= i + 1; p++) {
+                    int p;
+                    int q;
+                    for (p = i - 1; p <= i + 1; p++) {
 
                         // Set q to j-1 and do next until q is == j +1 (Max of 3 times)
-                        for (int q = j - 1; q <= j + 1; q++) {
+                        for (q = j - 1; q <= j + 1; q++) {
 
-                            // If 0 is less/equal to value of p
-                            if (0 <= p
-
-                                    // && p is less than blocks.length
-                                    && p < blocks[totalRows][totalColumns].length()
-
-                                    //&& 0 is less/equal
-                                    && 0 <= q
-
-                                    //  && q is less than blocks.length
-                                    && q < blocks[totalRows][totalColumns].length()) {
+                            // 4 statements to prevent out of bounds exception
+                            if (0 <= p && p < totalRows && 0 <= q && q < totalColumns) {
 
                                 // If block at p/q is a mine, add 1 to currentMineCount
                                 if (blocks[p][q].isMine())
@@ -385,11 +431,14 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
 
-                    blocks[i][j].showAdjacentMineCount(currentMineCount);
+                    // Set block objects values for number of adjacent mines and
+                    blocks[i][j].setNumberOfAdjacentMines(currentMineCount);
+//                    blocks[i][j].flipBlock();
                 }
             }
         }
     }
+
 
     // Starts the game time when the first block is clicked
     public void startTimer() {
@@ -491,66 +540,48 @@ public class MainActivity extends AppCompatActivity {
 
         if (id == R.id.new_game) {
 
-            builder.setTitle("New Game");
-            builder.setMessage("Would you like to start a new game? Current game will be lost");
-            builder.setPositiveButton("New Game", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
 
-                    AlertDialog.Builder difficultyDialog = new AlertDialog.Builder(MainActivity.this);
-                    difficultyDialog.setTitle("Choose difficulty");
-                    difficultyDialog.setItems(new CharSequence[]{
-                                    "Easy:   9 x 9 with 10 mines",
-                                    "Medium:   15 x 15 with 20 mines",
-                                    "Hard:   20 x 20 with 40 mines"},
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int which) {
+            AlertDialog.Builder difficultyDialog = new AlertDialog.Builder(MainActivity.this);
+            difficultyDialog.setTitle("Choose difficulty");
+            difficultyDialog.setItems(new CharSequence[]{
+                            "Easy:   9 x 9 with 10 mines",
+                            "Medium:   15 x 15 with 20 mines",
+                            "Hard:   20 x 20 with 40 mines"},
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
 
-                                    switch (which) {
+                            switch (which) {
 
-                                        case 0:
-                                            Toast.makeText(MainActivity.this, "Easy: 9 x 9 with 10 mines", Toast.LENGTH_SHORT).show();
+                                case 0:
+                                    Toast.makeText(MainActivity.this, "Easy: 9 x 9 with 10 mines", Toast.LENGTH_SHORT).show();
 //
-                                            Intent easyGameIntent = getIntent();
-                                            easyGameIntent.putExtra("newGameDifficulty", 1);
-                                            finish();
-                                            startActivity(easyGameIntent);
-                                            break;
+                                    Intent easyGameIntent = getIntent();
+                                    easyGameIntent.putExtra("newGameDifficulty", 1);
+                                    finish();
+                                    startActivity(easyGameIntent);
+                                    break;
 
-                                        case 1:
-                                            Toast.makeText(MainActivity.this, "Medium: 15 x 15 with 20 mines", Toast.LENGTH_SHORT).show();
+                                case 1:
+                                    Toast.makeText(MainActivity.this, "Medium: 15 x 15 with 20 mines", Toast.LENGTH_SHORT).show();
 
-                                            Intent mediumGameIntent = getIntent();
-                                            mediumGameIntent.putExtra("newGameDifficulty", 2);
-                                            finish();
-                                            startActivity(mediumGameIntent);
-                                            break;
+                                    Intent mediumGameIntent = getIntent();
+                                    mediumGameIntent.putExtra("newGameDifficulty", 2);
+                                    finish();
+                                    startActivity(mediumGameIntent);
+                                    break;
 
-                                        case 2:
-                                            Toast.makeText(MainActivity.this, "Hard: 20 x 20 with 40 mines", Toast.LENGTH_SHORT).show();
+                                case 2:
+                                    Toast.makeText(MainActivity.this, "Hard: 20 x 20 with 40 mines", Toast.LENGTH_SHORT).show();
 
-                                            Intent hardGameIntent = getIntent();
-                                            hardGameIntent.putExtra("newGameDifficulty", 3);
-                                            finish();
-                                            startActivity(hardGameIntent);
-                                            break;
-                                    }
-                                }
-                            });
-                    difficultyDialog.create().show();
-                }
-            });
-
-            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-
-                }
-            });
-
-            builder.show();
-
-            return true;
+                                    Intent hardGameIntent = getIntent();
+                                    hardGameIntent.putExtra("newGameDifficulty", 3);
+                                    finish();
+                                    startActivity(hardGameIntent);
+                                    break;
+                            }
+                        }
+                    });
+            difficultyDialog.create().show();
         }
 
         if (id == R.id.give_up) {
@@ -580,7 +611,9 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
 
-        if (id == R.id.stats) {
+        if (id == R.id.stats)
+
+        {
 
 //            Intent leaderboardsButton = new Intent(MainActivity.this, LeaderBoardsActivity.class);
 //            startActivity(leaderboardsButton);
@@ -590,7 +623,9 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
 
-        if (id == R.id.about) {
+        if (id == R.id.about)
+
+        {
             builder.setTitle("Mine Sweeper");
             builder.setMessage("This application was created by Kevin Hodges " +
                     "for a JP Morgan & Chase code assessment. It incorporates all of the tried" +
@@ -616,14 +651,19 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
 
-        if (id == R.id.faq) {
+        if (id == R.id.faq)
+
+        {
             Intent faqIntent = new Intent(MainActivity.this, FAQActivity.class);
             startActivity(faqIntent);
             return true;
         }
 
 
-        return super.onOptionsItemSelected(item);
+        return super.
+
+                onOptionsItemSelected(item);
+
     }
 
 
