@@ -599,9 +599,9 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.new_game) {
 
 
-//            AlertDialog.Builder difficultyDialog = new AlertDialog.Builder(MainActivity.this, R.style.MyAlertDialogStyle);
-            builder.setTitle("Choose difficulty");
-            builder.setItems(new CharSequence[]{
+            AlertDialog.Builder difficultyDialog = new AlertDialog.Builder(MainActivity.this, R.style.MyAlertDialogStyle);
+            difficultyDialog.setTitle("Choose difficulty");
+            difficultyDialog.setItems(new CharSequence[]{
                             "Easy:   9 x 9 with 10 mines",
                             "Medium:   9 x 15 with 20 mines",
                             "Hard:   9 x 20 with 40 mines",
@@ -649,14 +649,14 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     });
-            builder.create().show();
+            difficultyDialog.create().show();
         }
 
         if (id == R.id.give_up) {
 
             smileyFaceIV.setImageResource(R.drawable.ic_smiley_sad);
 
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.MyAlertDialogStyle);
             builder.setTitle("Giving up already?");
             builder.setPositiveButton("Yes :(", new DialogInterface.OnClickListener() {
                 @Override
@@ -691,9 +691,8 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
 
-        if (id == R.id.about)
+        if (id == R.id.about) {
 
-        {
             builder.setTitle("Mine Sweeper \nKevin Hodges");
             builder.setMessage("This application was created " +
                     "for a JP Morgan & Chase code assessment. It incorporates all of the tried" +
