@@ -24,9 +24,7 @@
 
         <activity android:name=".activities.FAQActivity" />
 
-        <activity android:name=".activities.LeaderBoardsActivity" />
-
-        <activity android:name=".activities.UserActivity" />
+        <activity android:name=".activities.LeaderBoardActivity" />
 
     </application>
 

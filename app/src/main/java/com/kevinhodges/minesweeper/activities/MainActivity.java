@@ -8,7 +8,6 @@ import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.PersistableBundle;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
@@ -27,8 +26,10 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.kevinhodges.minesweeper.R;
 import com.kevinhodges.minesweeper.model.Block;
+import com.kevinhodges.minesweeper.model.User;
 
 import java.util.Random;
 
@@ -63,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         // Global dialog and shared prefs////////////////////////////////////////////////
@@ -117,10 +119,13 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 smileyFaceIV.setImageResource(R.drawable.ic_smiley_worried);
 
+                incrementGameCount("played");
+
                 Intent easyGameIntent = getIntent();
                 easyGameIntent.putExtra("newGameDifficulty", newGameDifficulty);
                 finish();
                 startActivity(easyGameIntent);
+
 
                 final Handler handler = new Handler();
                 handler.postDelayed(new Runnable() {
@@ -195,30 +200,30 @@ public class MainActivity extends AppCompatActivity {
                 totalMines = 10;
                 totalBlocks = totalRows * totalColumns;
                 blockSize = ratio;
-
-                Log.d(TAG, "Revealed blocks = " + revealedBlockCount);
-
                 break;
 
             case 2:
-//                totalRows = 20;
-//                totalColumns = 9;
-//                totalMines = 20;
-//                blockSize = ratio ;
+                totalRows = 20;
+                totalColumns = 9;
+                totalMines = 20;
+                totalBlocks = totalRows * totalColumns;
+                blockSize = ratio;
                 break;
 
             case 3:
-//                totalRows = 40;
-//                totalColumns = 9;
-//                totalMines = 40;
-//                blockSize = ratio ;
+                totalRows = 40;
+                totalColumns = 9;
+                totalMines = 40;
+                totalBlocks = totalRows * totalColumns;
+                blockSize = ratio;
                 break;
 
             case 4:
-//                totalRows = 100;
-//                totalColumns = 9;
-//                totalMines = 200;
-//                blockSize = ratio ;
+                totalRows = 100;
+                totalColumns = 9;
+                totalMines = 200;
+                totalBlocks = totalRows * totalColumns;
+                blockSize = ratio;
                 break;
         }
 
@@ -297,16 +302,7 @@ public class MainActivity extends AppCompatActivity {
 
                                 if (!blocks[curRow][curCol].isFlagged()) {
                                     blocks[curRow][curCol].flipBlock();
-
-//                                    for (boolean[] b : isBlockVisited) {
-//                                        if (b) {
-//                                            int cascadeCount++;
-//                                        }
-//                                    }
-
-
                                 }
-
                             }
                         }
                     }
@@ -538,8 +534,6 @@ public class MainActivity extends AppCompatActivity {
 
         vibrate(1000);
 
-        Toast.makeText(MainActivity.this, "BOOM!", Toast.LENGTH_SHORT).show();
-
         isGameOver = true;
 
         stopTimer();
@@ -553,7 +547,37 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+
+
     }
+
+    // This method will add to users total game count or won game count, based on the argument
+    // Get the user json string from shared prefs
+    // Convert it to a user object to interact with it
+    // Convert it back to a jsonString to save it back to shared prefs
+    public void incrementGameCount(String countToIncrement) {
+
+        Gson gson = new Gson();
+        String currentUserString = sharedPreferences.getString("currentUser", "");
+        String fromJsonUser = sharedPreferences.getString("user" + currentUserString, "");
+
+        User currentUserObject = gson.fromJson(fromJsonUser, User.class);
+
+        if (countToIncrement.equals("played")) {
+            int gamesPlayed = currentUserObject.getGamesPlayed();
+            currentUserObject.setGamesPlayed(gamesPlayed + 1);
+
+        } else if (countToIncrement.equals("won")) {
+            int gamesWon = currentUserObject.getGamesWon();
+            currentUserObject.setGamesWon(gamesWon + 1);
+        }
+
+        String toJsonUser = gson.toJson(currentUserObject);
+
+        editor.putString("user" + currentUserString, toJsonUser);
+        editor.commit();
+    }
+
 
     public void enterNewScore(final double finishTime) {
 
@@ -679,14 +703,54 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
 
-        if (id == R.id.stats)
+        if (id == R.id.stats) {
 
-        {
+            Gson gson = new Gson();
+            String currentUserString = sharedPreferences.getString("currentUser", "");
+            String jsonUser = sharedPreferences.getString("user" + currentUserString, "");
 
-//            Intent leaderboardsButton = new Intent(MainActivity.this, LeaderBoardsActivity.class);
-//            startActivity(leaderboardsButton);
-            enterNewScore(20.00);
+            User currentUserObject = gson.fromJson(jsonUser, User.class);
 
+            String currentUserName = currentUserObject.getName();
+            double currentUserBestTime = currentUserObject.getBestTime();
+            String currentUserDifficulty = currentUserObject.getDifficulty();
+
+            double currentUserGamesWon = currentUserObject.getGamesWon();
+            String gamesWonString = String.format("%.0f", currentUserGamesWon);
+
+            double currentUserGamesPlayed = currentUserObject.getGamesPlayed();
+            String gamesPlayedString = String.format("%.0f", currentUserGamesPlayed);
+
+            double currentUserWinRatio = currentUserGamesWon / currentUserGamesPlayed;
+            currentUserWinRatio *= 100;
+
+            String winRatioString = String.format("%.0f", currentUserWinRatio);
+
+            if (currentUserGamesPlayed == 0) {
+                builder.setMessage("You have not played any games yet.");
+                builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                });
+
+            } else {
+
+                builder.setTitle(currentUserName + "'s " + "stats");
+
+                builder.setMessage("Your best time is " + currentUserBestTime + " seconds on " +
+                        currentUserDifficulty + " difficulty. You have won " + gamesWonString +
+                        " out of " + gamesPlayedString + " which is a win percentage of " + winRatioString + "%" + "!");
+                builder.setPositiveButton("Sweet!", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                });
+            }
+
+            builder.show();
 
             return true;
         }
@@ -739,20 +803,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
-        super.onSaveInstanceState(outState, outPersistentState);
-
-
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-
-        savedInstanceState.getBundle("continueGame");
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
         resumeTimer();
@@ -780,4 +830,31 @@ public class MainActivity extends AppCompatActivity {
     public static void setRevealedBlockCount(int revealedBlockCount) {
         MainActivity.revealedBlockCount = revealedBlockCount;
     }
+
+
+    // TODO: 4/23/2016
+    //override on Back pressed with "Press again to exit"
+    //run method to look at each block and current state of each block
+    //create new 2d array
+    // for i= 0 to minefield.width
+    // for j = 0 to minefield.height
+    //iterate thru and store value of each block in the new array
+    // if value of block is mine, then store 9
+    // if value of block is number, then store number
+    // if value is flag and mine, then store 11
+
+    // example 2d array
+    // 4    0   11      9
+    // 3    1   4       6
+    // 11   0   0       0
+    // 3    0   1       5
+
+    //Time
+    //Mines left
+    // Empty is 0. Numbers are 1-8. Mine is -1. Mine with flag is -11. Number with flag = number+10
+
+    //store this array in the exit in the Bundle outstate/savedInstanceState or sharedPrefs
+    //when game is loaded, look to see if "savedGame" exists, if so, then load this saved array
+    //and assign the minefield conditions according whatever integers are stored by iterating thru
+    //saved array
 }

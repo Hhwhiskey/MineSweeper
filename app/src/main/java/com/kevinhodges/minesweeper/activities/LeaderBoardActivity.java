@@ -1,5 +1,6 @@
 package com.kevinhodges.minesweeper.activities;
 
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -8,6 +9,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -22,7 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class UserActivity extends AppCompatActivity {
+public class LeaderBoardActivity extends AppCompatActivity {
 
     private AlertDialog.Builder builder;
     private SharedPreferences sharedPreferences;
@@ -40,7 +43,7 @@ public class UserActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_user);
+        setContentView(R.layout.activity_leaderboard);
 
         setTitle("Leaderboards");
 
@@ -83,7 +86,7 @@ public class UserActivity extends AppCompatActivity {
             userAdapter = new UserAdapter(this, allUserList);
             userRecyclerView.setAdapter(userAdapter);
 
-            Toast.makeText(UserActivity.this, "listsize = " + allUserList.size(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(LeaderBoardActivity.this, "listsize = " + allUserList.size(), Toast.LENGTH_SHORT).show();
         }
 
 
@@ -100,7 +103,7 @@ public class UserActivity extends AppCompatActivity {
                 newUserString = newUserAC.getText().toString();
 
                 // Create new User object
-                User user = new User(newUserString, 0.00, 0, 0);
+                User user = new User(newUserString, String.valueOf(0), 0, 0, 0);
 
                 // Add the user to a temp list
                 allUserList.add(user);
@@ -121,11 +124,44 @@ public class UserActivity extends AppCompatActivity {
 
                 // Set edit text to ""
                 newUserAC.setText("");
+
+                Toast.makeText(LeaderBoardActivity.this, "You are now logged in under " +
+                        newUserString +". Click users to change profiles and long press " +
+                        "to delete.", Toast.LENGTH_LONG).show();
             }
         });
 
+    }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_leaderboards, menu);
+        return true;
+    }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
 
+        if (id == R.id.leaderboardStats) {
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.MyAlertDialogStyle);
+            builder.setTitle("Info");
+            builder.setMessage("This is the leader board. You can create new users here. Press a " +
+                    "user to switch to that profile. Long press to delete that user.");
+
+            builder.setPositiveButton("Got it", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+
+                }
+            });
+
+            builder.show();
+
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 }

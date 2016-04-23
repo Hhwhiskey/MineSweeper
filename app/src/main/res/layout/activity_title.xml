@@ -15,32 +15,20 @@
         android:layout_height="wrap_content"
         android:text="New Game"
         android:id="@+id/bttn_new_game"
-        android:layout_marginTop="57dp"
+        android:layout_marginTop="92dp"
         android:layout_below="@+id/textView3"
-        android:layout_alignLeft="@+id/button2"
-        android:layout_alignStart="@+id/button2"
-        android:background="@color/colorPrimary" />
-
-    <Button
-        android:layout_width="150dp"
-        android:layout_height="wrap_content"
-        android:text="Continue"
-        android:id="@+id/button2"
-        android:layout_below="@+id/bttn_new_game"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
-        android:background="@color/colorPrimary" />
+        android:background="@color/colorPrimary"
+        android:layout_centerHorizontal="true" />
 
     <Button
         android:layout_width="150dp"
         android:layout_height="wrap_content"
         android:text="Leaderboards"
         android:id="@+id/bttn_leaderboards"
-        android:layout_below="@+id/button2"
-        android:layout_alignLeft="@+id/button2"
-        android:layout_alignStart="@+id/button2"
-        android:layout_marginTop="16dp"
-        android:background="@color/colorPrimary" />
+        android:layout_marginTop="32dp"
+        android:background="@color/colorPrimary"
+        android:layout_below="@+id/bttn_new_game"
+        android:layout_centerHorizontal="true" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -52,7 +40,8 @@
         android:layout_alignParentTop="true"
         android:gravity="center"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="16dp" />
 
     <TextView
         android:layout_width="wrap_content"

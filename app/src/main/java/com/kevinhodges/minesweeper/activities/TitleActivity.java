@@ -59,7 +59,7 @@ public class TitleActivity extends AppCompatActivity {
         leaderBoardsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent leaderboardsButton = new Intent(TitleActivity.this, LeaderBoardsActivity.class);
+                Intent leaderboardsButton = new Intent(TitleActivity.this, LeaderBoardActivity.class);
                 startActivity(leaderboardsButton);
             }
         });
@@ -67,7 +67,7 @@ public class TitleActivity extends AppCompatActivity {
         sweeperTV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent userActivity = new Intent(TitleActivity.this, UserActivity.class);
+                Intent userActivity = new Intent(TitleActivity.this, LeaderBoardActivity.class);
                 startActivity(userActivity);
             }
         });
@@ -75,7 +75,7 @@ public class TitleActivity extends AppCompatActivity {
         currentUserTV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent userActivity = new Intent(TitleActivity.this, UserActivity.class);
+                Intent userActivity = new Intent(TitleActivity.this, LeaderBoardActivity.class);
                 startActivity(userActivity);
             }
         });

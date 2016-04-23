@@ -83,7 +83,16 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
             customRow.setOnClickListener(this);
             customRow.setOnLongClickListener(this);
             userName.setText(current.getName());
-            bestTime.setText(String.valueOf(current.getBestTime()) + " seconds");
+
+            String bestDifficulty = current.getDifficulty();
+
+            if (bestDifficulty.equals("0")) {
+                bestTime.setText("No wins yet");
+            } else {
+                bestTime.setText(String.valueOf(current.getBestTime()) + " on " + bestDifficulty);
+            }
+
+
             gamesWon.setText(String.valueOf(current.getGamesWon()) + " won");
             gamesPlayed.setText(String.valueOf(current.getGamesPlayed()) + " played");
 
@@ -135,7 +144,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
 
             builder = new AlertDialog.Builder(v.getRootView().getContext());
             builder.setTitle("Delete User");
-            builder.setMessage("Are you sure you would like to delete " + userName.getText().toString());
+            builder.setMessage("Are you sure you would like to delete " + userName.getText().toString() + "?");
             builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
