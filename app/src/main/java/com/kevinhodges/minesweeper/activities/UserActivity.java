@@ -7,6 +7,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -34,11 +35,16 @@ public class UserActivity extends AppCompatActivity {
     private Button newUserButton;
     private String newUserString;
     private List<User> allUserList;
+    private Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user);
+
+        setTitle("Leaderboards");
+
+        allUserList = new ArrayList<>();
 
         // Global dialog and shared prefs////////////////////////////////////////////////
         builder = new AlertDialog.Builder(this);
@@ -48,6 +54,10 @@ public class UserActivity extends AppCompatActivity {
 
 
         //UI Declarations///////////////////////////////////////////////////////////
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("Leaderboards");
+
         userRecyclerView = (RecyclerView) findViewById(R.id.rv_user);
         layoutManager = new LinearLayoutManager(this);
         userAdapter = new UserAdapter(this, allUserList);
@@ -113,6 +123,8 @@ public class UserActivity extends AppCompatActivity {
                 newUserAC.setText("");
             }
         });
+
+
 
 
     }

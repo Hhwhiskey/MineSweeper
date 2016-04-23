@@ -5,14 +5,18 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.PersistableBundle;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
+import android.util.Log;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -35,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private TableLayout tableLayout;
     private int totalRows;
     private int totalColumns;
-    private int totalMines;
+    private static int totalMines;
     private Block[][] blocks;
     private Handler timer;
     private int secondsPassed;
@@ -50,6 +54,10 @@ public class MainActivity extends AppCompatActivity {
     private boolean isUserSignedOut;
     private AlertDialog.Builder builder;
     private boolean[][] isBlockVisited;
+    private int blockSize;
+    public static int revealedBlockCount;
+    private int totalBlocks;
+    public static int correctFlagsPlaced;
 
 
     @Override
@@ -58,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Global dialog and shared prefs////////////////////////////////////////////////
-        builder = new AlertDialog.Builder(this);
+        builder = new AlertDialog.Builder(this, R.style.MyAlertDialogStyle);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         editor = sharedPreferences.edit();
         ////////////////////////////////////////////////////////////////////////////////
@@ -67,8 +75,9 @@ public class MainActivity extends AppCompatActivity {
         newGameDifficulty = getIntent.getIntExtra("newGameDifficulty", 0);
 
         timer = new Handler();
-        secondsPassed = 0;
 
+        secondsPassed = 0;
+        correctFlagsPlaced = 0;
         Block.MINE_COUNT = 0;
 
 
@@ -145,6 +154,10 @@ public class MainActivity extends AppCompatActivity {
             case 3:
                 mineCountTV.setText(String.valueOf(40));
                 break;
+
+            case 4:
+                mineCountTV.setText(String.valueOf(200));
+                break;
         }
 
         if (newGameDifficulty != 0) {
@@ -167,24 +180,45 @@ public class MainActivity extends AppCompatActivity {
     // Hard = 18*18 with 40 bombs
     public void createNewGameBoard(int difficulty) {
 
+        // Get the display size to form a ratio that can be used to alter the block size accordingly
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        int width = size.x;
+        int ratio = width / 10;
+
+
         switch (difficulty) {
             case 1:
                 totalRows = 9;
                 totalColumns = 9;
                 totalMines = 10;
+                totalBlocks = totalRows * totalColumns;
+                blockSize = ratio;
+
+                Log.d(TAG, "Revealed blocks = " + revealedBlockCount);
+
                 break;
 
             case 2:
-                totalRows = 15;
-                totalColumns = 15;
-                totalMines = 20;
+//                totalRows = 20;
+//                totalColumns = 9;
+//                totalMines = 20;
+//                blockSize = ratio ;
                 break;
 
             case 3:
-                totalRows = 20;
-                totalColumns = 20;
-                totalMines = 40;
+//                totalRows = 40;
+//                totalColumns = 9;
+//                totalMines = 40;
+//                blockSize = ratio ;
+                break;
 
+            case 4:
+//                totalRows = 100;
+//                totalColumns = 9;
+//                totalMines = 200;
+//                blockSize = ratio ;
                 break;
         }
 
@@ -198,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
             //create a new table row
             TableRow tableRow = new TableRow(this);
             //set the height and width of the row
-            int blockSize = 148;
+//            blockSize = 125;
             int blockPadding = 1;
             tableRow.setLayoutParams(new TableRow.LayoutParams((blockSize * blockPadding) * totalColumns, blockSize * blockPadding));
 
@@ -255,7 +289,7 @@ public class MainActivity extends AppCompatActivity {
                             // If click is the first click, place all mines
                             if (firstClick) {
                                 placeMinesOnBoard(curRow, curCol);
-                                revealBlock(blocks, curRow, curCol);
+                                revealFirstBlock(blocks, curRow, curCol);
                                 // Start the game timer on first click
                                 startTimer();
 
@@ -263,6 +297,14 @@ public class MainActivity extends AppCompatActivity {
 
                                 if (!blocks[curRow][curCol].isFlagged()) {
                                     blocks[curRow][curCol].flipBlock();
+
+//                                    for (boolean[] b : isBlockVisited) {
+//                                        if (b) {
+//                                            int cascadeCount++;
+//                                        }
+//                                    }
+
+
                                 }
 
                             }
@@ -299,8 +341,7 @@ public class MainActivity extends AppCompatActivity {
                                         if (Block.MINE_COUNT > 0) {
 
                                             // Give vibration feedback of the flag placement
-                                            Vibrator v = (Vibrator) MainActivity.this.getSystemService(Context.VIBRATOR_SERVICE);
-                                            v.vibrate(500);
+                                            vibrate(500);
 
                                             blocks[curRow][curCol].plantFlag();
                                             mineCountTV.setText(String.valueOf(--Block.MINE_COUNT));
@@ -311,6 +352,14 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             }
                         }
+
+                        Log.d(TAG, "correctFlagsPlaced = " + correctFlagsPlaced);
+
+                        // If blocks left = mineCount player wins
+                        if (correctFlagsPlaced == totalMines) {
+                            winGame();
+                        }
+
                         return true;
                     }
                 });
@@ -322,7 +371,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Will cascade blocks adjacent to the one that is touched, until they come near mines
-    public void revealBlock(Block[][] blocks, int x, int y) {
+    public void revealFirstBlock(Block[][] blocks, int x, int y) {
 
         //Set global first click to false to alter click functions
         firstClick = false;
@@ -334,7 +383,6 @@ public class MainActivity extends AppCompatActivity {
 
         // Show the block in question and mark it as revealed
         blocks[x][y].flipBlock();
-        blocks[x][y].setRevealed(true);
 
         // Exit if this block is checked
         if (isBlockVisited[x][y]) {
@@ -344,19 +392,20 @@ public class MainActivity extends AppCompatActivity {
         // If this point is reached, set the block corresponding to this index to true
         isBlockVisited[x][y] = true;
 
+
         // If block is not a mine and does not border any mines
         if (!blocks[x][y].isMine() && blocks[x][y].getNumberOfAdjacentMines() == 0) {
 
             // Check in all 8 directions from the current block
-            revealBlock(blocks, x - 1, y - 1);
-            revealBlock(blocks, x - 1, y);
-            revealBlock(blocks, x - 1, y + 1);
-            revealBlock(blocks, x, y - 1);
-            revealBlock(blocks, x, y);
-            revealBlock(blocks, x, y + 1);
-            revealBlock(blocks, x + 1, y - 1);
-            revealBlock(blocks, x + 1, y);
-            revealBlock(blocks, x + 1, y + 1);
+            revealFirstBlock(blocks, x - 1, y - 1);
+            revealFirstBlock(blocks, x - 1, y);
+            revealFirstBlock(blocks, x - 1, y + 1);
+            revealFirstBlock(blocks, x, y - 1);
+            revealFirstBlock(blocks, x, y);
+            revealFirstBlock(blocks, x, y + 1);
+            revealFirstBlock(blocks, x + 1, y - 1);
+            revealFirstBlock(blocks, x + 1, y);
+            revealFirstBlock(blocks, x + 1, y + 1);
 
         }
     }
@@ -480,13 +529,16 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    public void winGame() {
+        Toast.makeText(MainActivity.this, "You win", Toast.LENGTH_LONG).show();
+    }
+
     // Game over: Vibrate, stop timer, show all bombs, restart game on another click
     public void loseGame() {
 
-        Toast.makeText(MainActivity.this, "BOOM!", Toast.LENGTH_SHORT).show();
+        vibrate(1000);
 
-        Vibrator v = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
-        v.vibrate(1000);
+        Toast.makeText(MainActivity.this, "BOOM!", Toast.LENGTH_SHORT).show();
 
         isGameOver = true;
 
@@ -528,6 +580,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    public void vibrate(int length) {
+        Vibrator v = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
+        v.vibrate(length);
+    }
+
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main_activity, menu);
@@ -541,12 +599,13 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.new_game) {
 
 
-            AlertDialog.Builder difficultyDialog = new AlertDialog.Builder(MainActivity.this);
-            difficultyDialog.setTitle("Choose difficulty");
-            difficultyDialog.setItems(new CharSequence[]{
+//            AlertDialog.Builder difficultyDialog = new AlertDialog.Builder(MainActivity.this, R.style.MyAlertDialogStyle);
+            builder.setTitle("Choose difficulty");
+            builder.setItems(new CharSequence[]{
                             "Easy:   9 x 9 with 10 mines",
-                            "Medium:   15 x 15 with 20 mines",
-                            "Hard:   20 x 20 with 40 mines"},
+                            "Medium:   9 x 15 with 20 mines",
+                            "Hard:   9 x 20 with 40 mines",
+                            "Insane:   9 x 100 with 200 mines"},
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
 
@@ -562,7 +621,7 @@ public class MainActivity extends AppCompatActivity {
                                     break;
 
                                 case 1:
-                                    Toast.makeText(MainActivity.this, "Medium: 15 x 15 with 20 mines", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(MainActivity.this, "Medium: 9 x 15 with 20 mines", Toast.LENGTH_SHORT).show();
 
                                     Intent mediumGameIntent = getIntent();
                                     mediumGameIntent.putExtra("newGameDifficulty", 2);
@@ -571,17 +630,26 @@ public class MainActivity extends AppCompatActivity {
                                     break;
 
                                 case 2:
-                                    Toast.makeText(MainActivity.this, "Hard: 20 x 20 with 40 mines", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(MainActivity.this, "Hard: 9 x 20 with 40 mines", Toast.LENGTH_SHORT).show();
 
                                     Intent hardGameIntent = getIntent();
                                     hardGameIntent.putExtra("newGameDifficulty", 3);
                                     finish();
                                     startActivity(hardGameIntent);
                                     break;
+
+                                case 3:
+                                    Toast.makeText(MainActivity.this, "Insane: 9 x 100 with 200 mine. Your device may have trouble, this is insane after all...", Toast.LENGTH_SHORT).show();
+
+                                    Intent insaneGameIntent = getIntent();
+                                    insaneGameIntent.putExtra("newGameDifficulty", 4);
+                                    finish();
+                                    startActivity(insaneGameIntent);
+                                    break;
                             }
                         }
                     });
-            difficultyDialog.create().show();
+            builder.create().show();
         }
 
         if (id == R.id.give_up) {
@@ -626,11 +694,16 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.about)
 
         {
-            builder.setTitle("Mine Sweeper");
-            builder.setMessage("This application was created by Kevin Hodges " +
+            builder.setTitle("Mine Sweeper \nKevin Hodges");
+            builder.setMessage("This application was created " +
                     "for a JP Morgan & Chase code assessment. It incorporates all of the tried" +
                     " and true Mine Sweeper game play that you have grown to love, with a new, " +
-                    "polished, material design look.");
+                    "polished, material design look. I made the decision to go with a " +
+                    "consistent 9 column layout for the game board regardless of the game board " +
+                    "difficulty chosen. This is not how the typical game is presented, but" +
+                    " I felt this allowed much easier mobile oriented/one handed game play which" +
+                    " adds to the experience. I hope you enjoy my version of this classic. " +
+                    "Please leave some feedback on Google Play. Thanks!");
 
             builder.setPositiveButton("Leave Feedback", new DialogInterface.OnClickListener() {
                 @Override
@@ -666,6 +739,19 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState, outPersistentState);
+
+
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        savedInstanceState.getBundle("continueGame");
+    }
 
     @Override
     protected void onResume() {
@@ -677,5 +763,22 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         stopTimer();
+    }
+
+    //Getters and Setters
+    public int getTotalMines() {
+        return totalMines;
+    }
+
+    public void setTotalMines(int totalMines) {
+        this.totalMines = totalMines;
+    }
+
+    public static int getRevealedBlockCount() {
+        return revealedBlockCount;
+    }
+
+    public static void setRevealedBlockCount(int revealedBlockCount) {
+        MainActivity.revealedBlockCount = revealedBlockCount;
     }
 }

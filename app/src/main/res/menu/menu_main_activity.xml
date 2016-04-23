@@ -24,15 +24,17 @@
         android:title="Stats"
         app:showAsAction="always"/>
 
-    <item android:id="@+id/about"
-        android:title="About"
-        android:orderInCategory="1"
-        app:showAsAction="never"/>
-
     <item android:id="@+id/faq"
         android:title="FAQ"
         android:orderInCategory="1"
         app:showAsAction="never"/>
+
+    <item android:id="@+id/about"
+        android:title="About"
+        android:orderInCategory="2"
+        app:showAsAction="never"/>
+
+
 </menu>
 
 

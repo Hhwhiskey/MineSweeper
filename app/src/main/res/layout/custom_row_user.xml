@@ -9,7 +9,7 @@
         android:layout_height="1dp"
         android:background="#444"
         android:layout_marginRight="16dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="32dp"
         android:layout_marginBottom="16dp"
         android:layout_marginLeft="16dp" />
 
@@ -21,7 +21,8 @@
         android:layout_alignEnd="@+id/hr"
         android:layout_alignStart="@+id/cr_user_name"
         android:layout_alignBottom="@+id/hr"
-        android:layout_marginLeft="8dp">
+        android:layout_marginLeft="8dp"
+        android:id="@+id/layout_custom_row">
 
         <TextView
             android:layout_width="wrap_content"

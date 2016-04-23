@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.kevinhodges.minesweeper.activities.FAQActivity"
+    tools:context=".activities.FAQActivity"
     android:background="@color/background_material_dark">
 
     <include
@@ -14,24 +14,17 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/toolbar">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Welcome to Mine Sweeper! Start by choosing your difficulty; this will change the starting board size and also the mine density! Beginners should start on easy before they venture to the harder difficulties. \n\nYour goal is to reveal all blocks WITHOUT finding a mine. Just tap blocks to reveal them and you will notice some of them have numbers on them, these represent the amount of mines adjacent to that block. If you suspect a block is a mine, long press it to add/remove flags. Flags mark the mine and make sure you don't accidentally reveal that block. Pay attention to the amount of mines left on the board!\n\nIf you reveal all blocks without landing on a mine you will win and your score will be tracked. The faster your time, the higher your score! Good luck!"
-        android:id="@+id/textView"
         android:layout_below="@+id/toolbar"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:layout_margin="16dp"
-        android:gravity="center"
-        android:textSize="20dp" />
+        android:layout_margin="16dp">
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Welcome to Mine Sweeper! Start by choosing your difficulty; this will change the starting board size and also the mine density! Beginners should start on easy before they venture to the harder difficulties. \n\nYour goal is to reveal all blocks WITHOUT finding a mine. Just tap blocks to reveal them and you will notice some of them have numbers on them, these represent the amount of mines adjacent to that block. If you suspect a block is a mine, long press it to add/remove flags. Flags mark the mine and make sure you don't accidentally reveal that block. Pay attention to the amount of mines left on the board!\n\nIf you reveal all blocks without landing on a mine you will win and your score will be tracked. The faster your time, the higher your score! Good luck!"
+            android:id="@+id/textView"
+            android:gravity="center"
+            android:textSize="22dp" />
     </ScrollView>
 
 </RelativeLayout>

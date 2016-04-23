@@ -84,12 +84,13 @@ public class TitleActivity extends AppCompatActivity {
 
     public void startNewGameDialog() {
 
-        AlertDialog.Builder difficultyDialog = new AlertDialog.Builder(TitleActivity.this);
+        AlertDialog.Builder difficultyDialog = new AlertDialog.Builder(TitleActivity.this, R.style.MyAlertDialogStyle);
         difficultyDialog.setTitle("Choose difficulty");
         difficultyDialog.setItems(new CharSequence[]{
                         "Easy:   9 x 9 with 10 mines",
                         "Medium:   15 x 15 with 20 mines",
-                        "Hard:   20 x 20 with 40 mines"},
+                        "Hard:   20 x 20 with 40 mines",
+                        "Insane:   9 x 100 with 200 mines"},
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
 
@@ -121,9 +122,18 @@ public class TitleActivity extends AppCompatActivity {
                                 hardGameIntent.putExtra("newGameDifficulty", 3);
                                 startActivity(hardGameIntent);
                                 break;
+
+                            case 3:
+                                Toast.makeText(TitleActivity.this, "Insane: 9 x 100 with 200 mine. Your device may have trouble, this is insane after all...", Toast.LENGTH_SHORT).show();
+
+                                Intent insaneGameIntent = new Intent(TitleActivity.this, MainActivity.class);
+                                insaneGameIntent.putExtra("newGameDifficulty", 4);
+                                startActivity(insaneGameIntent);
+                                break;
                         }
                     }
                 });
+
         difficultyDialog.create().show();
     }
 

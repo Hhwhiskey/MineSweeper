@@ -2,23 +2,23 @@ package com.kevinhodges.minesweeper.model;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.Button;
 
 import com.kevinhodges.minesweeper.R;
+import com.kevinhodges.minesweeper.activities.MainActivity;
 
 /**
  * Created by Kevin on 4/18/2016.
  */
 public class Block extends Button {
 
+    private static final String TAG = "Block";
     public static int MINE_COUNT = 0;
     private boolean isMine;
     private boolean isRevealed;
     private boolean isFlagged;
     private int numberOfAdjacentMines;
-    private int value;
-    private int xAxis;
-    private int yAxis;
 
     public Block(Context context) {
         super(context);
@@ -37,7 +37,6 @@ public class Block extends Button {
         isFlagged = false;
         isRevealed = false;
         numberOfAdjacentMines = 0;
-        value = 0;
 
         this.setBackgroundResource(R.drawable.covered_block);
     }
@@ -45,7 +44,7 @@ public class Block extends Button {
     public void plantMine() {
         isMine = true;
 
-//        this.setBackgroundResource(R.drawable.ic_bomb_black);
+        this.setBackgroundResource(R.drawable.ic_bomb_black);
 
         MINE_COUNT++;
     }
@@ -53,18 +52,31 @@ public class Block extends Button {
     public void plantFlag() {
         isFlagged = true;
 
+//        int revealedBlockCount = MainActivity.revealedBlockCount--;
+//
+//        Toast.makeText(getContext(), "Blocks left " + revealedBlockCount, Toast.LENGTH_SHORT).show();
+        
+        if (isMine()) {
+            MainActivity.correctFlagsPlaced++;
+        }
+
         this.setBackgroundResource(R.drawable.ic_flag);
     }
 
     public void removeFlag() {
         isFlagged = false;
 
+        if (isMine()) {
+            MainActivity.correctFlagsPlaced--;
+        }
+
+//        int revealedBlockCount = MainActivity.revealedBlockCount++;
+//        Log.d(TAG, "Blocks left = " + revealedBlockCount);
+
         this.setBackgroundResource(R.drawable.covered_block);
     }
 
     public void flipBlock() {
-
-        isRevealed = true;
 
         if (isMine) {
             this.setBackgroundResource(R.drawable.ic_explosion);
@@ -72,8 +84,16 @@ public class Block extends Button {
         } else if (numberOfAdjacentMines > 0) {
             showAdjacentMineCount(numberOfAdjacentMines);
 
+            isRevealed = true;
+//            MainActivity.revealedBlockCount++;
+            Log.d(TAG, "Revealed blocks = " + MainActivity.revealedBlockCount);
+
         } else {
             this.setBackgroundResource(R.drawable.uncovered_block);
+
+            isRevealed = true;
+//            MainActivity.revealedBlockCount++;
+            Log.d(TAG, "Revealed blocks = " + MainActivity.revealedBlockCount);
         }
     }
 
@@ -153,16 +173,6 @@ public class Block extends Button {
     // Returns flagged status
     public boolean isFlagged() {
         return isFlagged;
-    }
-
-    // Returns x axis
-    public int getXAxis() {
-        return xAxis;
-    }
-
-    // Returns y axis
-    public int getYAxis() {
-        return yAxis;
     }
 
     // Returns value of this block, according to the amount of bombs adjacent to it
