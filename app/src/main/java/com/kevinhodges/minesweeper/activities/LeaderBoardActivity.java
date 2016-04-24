@@ -27,17 +27,19 @@ import java.util.List;
 
 public class LeaderBoardActivity extends AppCompatActivity {
 
-    private AlertDialog.Builder builder;
-    private SharedPreferences sharedPreferences;
-    private SharedPreferences.Editor editor;
+    private static final String ALL_USER_LIST = "allUserList";
+    private static final String CURRENT_USER = "currentUser";
+    private static final String USER = "user";
+    private AlertDialog.Builder mBuilder;
+    private SharedPreferences mSharedPreferences;
+    private SharedPreferences.Editor mEditor;
     private RecyclerView userRecyclerView;
     private LinearLayoutManager layoutManager;
-//    private ArrayList<User> userList;
     private UserAdapter userAdapter;
     private AutoCompleteTextView newUserAC;
     private Button newUserButton;
-    private String newUserString;
-    private List<User> allUserList;
+    private String mNewUserString;
+    private List<User> mAllUserList;
     private Toolbar toolbar;
 
     @Override
@@ -47,12 +49,12 @@ public class LeaderBoardActivity extends AppCompatActivity {
 
         setTitle("Leaderboards");
 
-        allUserList = new ArrayList<>();
+        mAllUserList = new ArrayList<>();
 
         // Global dialog and shared prefs////////////////////////////////////////////////
-        builder = new AlertDialog.Builder(this);
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        editor = sharedPreferences.edit();
+        mBuilder = new AlertDialog.Builder(this);
+        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        mEditor = mSharedPreferences.edit();
         ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -63,7 +65,7 @@ public class LeaderBoardActivity extends AppCompatActivity {
 
         userRecyclerView = (RecyclerView) findViewById(R.id.rv_user);
         layoutManager = new LinearLayoutManager(this);
-        userAdapter = new UserAdapter(this, allUserList);
+        userAdapter = new UserAdapter(this, mAllUserList);
         userRecyclerView.setLayoutManager(layoutManager);
         userRecyclerView.setAdapter(userAdapter);
 
@@ -73,22 +75,19 @@ public class LeaderBoardActivity extends AppCompatActivity {
 
 
         // If there is a currentUserList, get the users from that list and display them
-        if (sharedPreferences.contains("allUserList")) {
+        if (mSharedPreferences.contains(ALL_USER_LIST)) {
 
             Gson gson = new Gson();
-            allUserList = new ArrayList<>();
+            mAllUserList = new ArrayList<>();
 
-            String json = sharedPreferences.getString("allUserList", "");
+            String json = mSharedPreferences.getString(ALL_USER_LIST, "");
             User[] sharedPrefsUserList = gson.fromJson(json, User[].class);
-            allUserList = Arrays.asList(sharedPrefsUserList);
-            allUserList = new ArrayList<>(allUserList);
+            mAllUserList = Arrays.asList(sharedPrefsUserList);
+            mAllUserList = new ArrayList<>(mAllUserList);
 
-            userAdapter = new UserAdapter(this, allUserList);
+            userAdapter = new UserAdapter(this, mAllUserList);
             userRecyclerView.setAdapter(userAdapter);
-
-            Toast.makeText(LeaderBoardActivity.this, "listsize = " + allUserList.size(), Toast.LENGTH_SHORT).show();
         }
-
 
 
         // Create the new user and store json object to shared prefs based on their userName
@@ -97,27 +96,25 @@ public class LeaderBoardActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-//                ArrayList<User> userList = new ArrayList<>();
-
                 // Get name from editText
-                newUserString = newUserAC.getText().toString();
+                mNewUserString = newUserAC.getText().toString();
 
                 // Create new User object
-                User user = new User(newUserString, String.valueOf(0), 0, 0, 0);
+                User user = new User(mNewUserString);
 
                 // Add the user to a temp list
-                allUserList.add(user);
+                mAllUserList.add(user);
 
-                // Create json data for the user and the allUserList
+                // Create json data for the user and the mAllUserList
                 Gson gson = new Gson();
                 String currentUserJson = gson.toJson(user);
-                String userListJson = gson.toJson(allUserList);
+                String userListJson = gson.toJson(mAllUserList);
 
                 // Save user data to shared prefs and set the currentUser
-                editor.putString("currentUser", newUserString);
-                editor.putString("user" + newUserString, currentUserJson);
-                editor.putString("allUserList", userListJson);
-                editor.commit();
+                mEditor.putString(CURRENT_USER, mNewUserString);
+                mEditor.putString(USER + mNewUserString, currentUserJson);
+                mEditor.putString(ALL_USER_LIST, userListJson);
+                mEditor.commit();
 
                 // Show the new user at the top of the user list
                 userRecyclerView.setAdapter(userAdapter);
@@ -126,7 +123,7 @@ public class LeaderBoardActivity extends AppCompatActivity {
                 newUserAC.setText("");
 
                 Toast.makeText(LeaderBoardActivity.this, "You are now logged in under " +
-                        newUserString +". Click users to change profiles and long press " +
+                        mNewUserString +". Click users to change profiles and long press " +
                         "to delete.", Toast.LENGTH_LONG).show();
             }
         });
@@ -143,12 +140,11 @@ public class LeaderBoardActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.leaderboardStats) {
+        if (id == R.id.leaderboardInfo) {
 
             AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.MyAlertDialogStyle);
             builder.setTitle("Info");
-            builder.setMessage("This is the leader board. You can create new users here. Press a " +
-                    "user to switch to that profile. Long press to delete that user.");
+            builder.setMessage(getString(R.string.leaderboard_info));
 
             builder.setPositiveButton("Got it", new DialogInterface.OnClickListener() {
                 @Override

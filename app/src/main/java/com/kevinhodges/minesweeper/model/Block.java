@@ -2,7 +2,6 @@ package com.kevinhodges.minesweeper.model;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.widget.Button;
 
 import com.kevinhodges.minesweeper.R;
@@ -44,7 +43,7 @@ public class Block extends Button {
     public void plantMine() {
         isMine = true;
 
-//        this.setBackgroundResource(R.drawable.ic_bomb_black);
+        this.setBackgroundResource(R.drawable.ic_bomb_black);
 
         MINE_COUNT++;
     }
@@ -52,12 +51,8 @@ public class Block extends Button {
     public void plantFlag() {
         isFlagged = true;
 
-//        int revealedBlockCount = MainActivity.revealedBlockCount--;
-//
-//        Toast.makeText(getContext(), "Blocks left " + revealedBlockCount, Toast.LENGTH_SHORT).show();
-        
         if (isMine()) {
-            MainActivity.correctFlagsPlaced++;
+            MainActivity.mCorrectFlagsPlaced++;
         }
 
         this.setBackgroundResource(R.drawable.ic_flag);
@@ -67,11 +62,8 @@ public class Block extends Button {
         isFlagged = false;
 
         if (isMine()) {
-            MainActivity.correctFlagsPlaced--;
+            MainActivity.mCorrectFlagsPlaced--;
         }
-
-//        int revealedBlockCount = MainActivity.revealedBlockCount++;
-//        Log.d(TAG, "Blocks left = " + revealedBlockCount);
 
         this.setBackgroundResource(R.drawable.covered_block);
     }
@@ -83,17 +75,11 @@ public class Block extends Button {
 
         } else if (numberOfAdjacentMines > 0) {
             showAdjacentMineCount(numberOfAdjacentMines);
-
             isRevealed = true;
-//            MainActivity.revealedBlockCount++;
-            Log.d(TAG, "Revealed blocks = " + MainActivity.revealedBlockCount);
 
         } else {
             this.setBackgroundResource(R.drawable.uncovered_block);
-
             isRevealed = true;
-//            MainActivity.revealedBlockCount++;
-            Log.d(TAG, "Revealed blocks = " + MainActivity.revealedBlockCount);
         }
     }
 

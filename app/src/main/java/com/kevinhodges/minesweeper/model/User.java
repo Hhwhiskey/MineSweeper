@@ -6,18 +6,14 @@ package com.kevinhodges.minesweeper.model;
 public class User {
 
     private String name;
-    private String difficulty = "";
-    private double bestTime = 0;
+    private int highScore = 0;
     private int gamesWon = 0;
+    private int gamesLost = 0;
     private int gamesPlayed = 0;
 
 
-    public User(String name, String difficulty, double bestTime, int gamesWon, int gamesPlayed) {
+    public User(String name) {
         this.name = name;
-        this.difficulty = difficulty;
-        this.bestTime = bestTime;
-        this.gamesWon = gamesWon;
-        this.gamesPlayed = gamesPlayed;
     }
 
 
@@ -29,20 +25,20 @@ public class User {
         this.name = name;
     }
 
-    public double getBestTime() {
-        return bestTime;
+    public int getHighScore() {
+        return highScore;
     }
 
-    public void setBestTime(double bestTime) {
-        this.bestTime = bestTime;
+    public void setHighScore(int highScore) {
+        this.highScore = highScore;
     }
 
-    public int getGamesPlayed() {
-        return gamesPlayed;
+    public int getGamesLost() {
+        return gamesLost;
     }
 
-    public void setGamesPlayed(int gamesPlayed) {
-        this.gamesPlayed = gamesPlayed;
+    public void setGamesLost(int gamesLost) {
+        this.gamesLost = gamesLost;
     }
 
     public int getGamesWon() {
@@ -53,12 +49,7 @@ public class User {
         this.gamesWon = gamesWon;
     }
 
-    public String getDifficulty() {
-        return difficulty;
+    public int getGamesPlayed() {
+        return gamesWon + gamesLost;
     }
-
-    public void setDifficulty(String difficulty) {
-        this.difficulty = difficulty;
-    }
-
 }

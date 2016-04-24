@@ -1,6 +1,5 @@
 package com.kevinhodges.minesweeper.activities;
 
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -13,13 +12,10 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.Editable;
-import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AutoCompleteTextView;
 import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -31,63 +27,52 @@ import com.kevinhodges.minesweeper.R;
 import com.kevinhodges.minesweeper.model.Block;
 import com.kevinhodges.minesweeper.model.User;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
-    private int newGameDifficulty;
-    private TableLayout tableLayout;
-    private int totalRows;
-    private int totalColumns;
-    private static int totalMines;
-    private Block[][] blocks;
-    private Handler timer;
-    private int secondsPassed;
+    private static final String CURRENT_USER = "currentUser";
+    private static final String USER = "user";
+    private static final String NEW_GAME_DIFFICULTY = "newGameDifficulty";
+    private static final String ALL_USER_LIST = "allUserList";
+    private int mNewGameDifficulty;
+    private TableLayout mTableLayout;
+    private int mTotalRows;
+    private int mTotalColumns;
+    private static int mTotalMines;
+    private Block[][] mBlocks;
+    private Handler mTimer;
+    private int mSecondsPassed;
     private TextView gameTimerTV;
     private TextView mineCountTV;
-    private boolean firstClick = true;
+    private boolean mFirstClick = true;
     private ImageView smileyFaceIV;
-    private Boolean isGameOver = false;
-    private Menu menu;
-    private SharedPreferences sharedPreferences;
-    private SharedPreferences.Editor editor;
-    private boolean isUserSignedOut;
-    private AlertDialog.Builder builder;
-    private boolean[][] isBlockVisited;
-    private int blockSize;
-    public static int revealedBlockCount;
-    private int totalBlocks;
-    public static int correctFlagsPlaced;
+    private Boolean mIsGameOver = false;
+    private SharedPreferences mSharedPreferences;
+    private SharedPreferences.Editor mEditor;
+    private AlertDialog.Builder mBuilder;
+    private boolean[][] mIsBlockVisited;
+    //    private int ratio;
+//    public static int revealedBlockCount;
+//    private int mTotalBlocks = mTotalRows * mTotalColumns;
+    public static int mCorrectFlagsPlaced;
+    private int mInitialScore;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
-
-        // Global dialog and shared prefs////////////////////////////////////////////////
-        builder = new AlertDialog.Builder(this, R.style.MyAlertDialogStyle);
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        editor = sharedPreferences.edit();
-        ////////////////////////////////////////////////////////////////////////////////
-
-        Intent getIntent = getIntent();
-        newGameDifficulty = getIntent.getIntExtra("newGameDifficulty", 0);
-
-        timer = new Handler();
-
-        secondsPassed = 0;
-        correctFlagsPlaced = 0;
-        Block.MINE_COUNT = 0;
-
 
         //UI Declarations///////////////////////////////////////////////////////////
         // Google suggests the use of the Toolbar in place of the action bar to support older devices.
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        tableLayout = (TableLayout) findViewById(R.id.table_game_board);
+        mTableLayout = (TableLayout) findViewById(R.id.table_game_board);
         gameTimerTV = (TextView) findViewById(R.id.tv_game_timer);
         mineCountTV = (TextView) findViewById(R.id.tv_mine_count);
         smileyFaceIV = (ImageView) findViewById(R.id.iv_smiley);
@@ -95,6 +80,19 @@ public class MainActivity extends AppCompatActivity {
         ImageView mineIV = (ImageView) findViewById(R.id.iv_mine);
         ///////////////////////////////////////////////////////////////////////////
 
+        // Global dialog and shared prefs////////////////////////////////////////////////
+        mBuilder = new AlertDialog.Builder(this, R.style.MyAlertDialogStyle);
+        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        mEditor = mSharedPreferences.edit();
+        ////////////////////////////////////////////////////////////////////////////////
+
+        Intent getIntent = getIntent();
+        mNewGameDifficulty = getIntent.getIntExtra(NEW_GAME_DIFFICULTY, 0);
+
+        mTimer = new Handler();
+        mSecondsPassed = 0;
+        mCorrectFlagsPlaced = 0;
+        Block.MINE_COUNT = 0;
 
         //OnClicks//////////////////////////////////////////////////////////////////////////////
         assert mineIV != null;
@@ -102,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Toast.makeText(MainActivity.this,
-                        "The amount of mines left. But who knows if you placed your flags correctly...", Toast.LENGTH_LONG).show();
+                        R.string.mines_toast, Toast.LENGTH_LONG).show();
             }
         });
 
@@ -110,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
         clockIV.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "The clock is ticking! Hurry up, this is how you will be ranked!", Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, R.string.timer_toast, Toast.LENGTH_LONG).show();
             }
         });
 
@@ -119,13 +117,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 smileyFaceIV.setImageResource(R.drawable.ic_smiley_worried);
 
-                incrementGameCount("played");
-
-                Intent easyGameIntent = getIntent();
-                easyGameIntent.putExtra("newGameDifficulty", newGameDifficulty);
-                finish();
-                startActivity(easyGameIntent);
-
+                restartGameActivity();
 
                 final Handler handler = new Handler();
                 handler.postDelayed(new Runnable() {
@@ -147,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Show the proper number of mines based on difficulty
-        switch (newGameDifficulty) {
+        switch (mNewGameDifficulty) {
             case 1:
                 mineCountTV.setText(String.valueOf(10));
                 break;
@@ -161,12 +153,12 @@ public class MainActivity extends AppCompatActivity {
                 break;
 
             case 4:
-                mineCountTV.setText(String.valueOf(200));
+                mineCountTV.setText(String.valueOf(80));
                 break;
         }
 
-        if (newGameDifficulty != 0) {
-            createNewGameBoard(newGameDifficulty);
+        if (mNewGameDifficulty != 0) {
+            createNewGameBoard(mNewGameDifficulty);
         }
         /////////////////////////////////////////////////////////////////////////////////////
 
@@ -190,89 +182,90 @@ public class MainActivity extends AppCompatActivity {
         Point size = new Point();
         display.getSize(size);
         int width = size.x;
-        int ratio = width / 10;
-
+        int ratio = width / 11;
+//        int blockSize = ratio;
 
         switch (difficulty) {
             case 1:
-                totalRows = 9;
-                totalColumns = 9;
-                totalMines = 10;
-                totalBlocks = totalRows * totalColumns;
-                blockSize = ratio;
+                mTotalRows = 10;
+                mTotalColumns = 10;
+                mTotalMines = 10;
+                mInitialScore = 10000;
+//                mTotalBlocks = mTotalRows * mTotalColumns;
+//                mBlockSize = ratio;
                 break;
 
             case 2:
-                totalRows = 20;
-                totalColumns = 9;
-                totalMines = 20;
-                totalBlocks = totalRows * totalColumns;
-                blockSize = ratio;
+                mTotalRows = 20;
+                mTotalColumns = 10;
+                mTotalMines = 20;
+                mInitialScore = 12500;
+//                mTotalBlocks = mTotalRows * mTotalColumns;
+//                mBlockSize = ratio;
                 break;
 
             case 3:
-                totalRows = 40;
-                totalColumns = 9;
-                totalMines = 40;
-                totalBlocks = totalRows * totalColumns;
-                blockSize = ratio;
+                mTotalRows = 40;
+                mTotalColumns = 10;
+                mTotalMines = 40;
+                mInitialScore = 15000;
+//                mTotalBlocks = mTotalRows * mTotalColumns;
+//                mBlockSize = ratio;
                 break;
 
             case 4:
-                totalRows = 100;
-                totalColumns = 9;
-                totalMines = 200;
-                totalBlocks = totalRows * totalColumns;
-                blockSize = ratio;
+                mTotalRows = 80;
+                mTotalColumns = 10;
+                mTotalMines = 160;
+                mInitialScore = 17500;
+//                mTotalBlocks = mTotalRows * mTotalColumns;
+//                mBlockSize = ratio;
                 break;
         }
 
         //setup the blocks array
-        blocks = new Block[totalRows][totalColumns];
+        mBlocks = new Block[mTotalRows][mTotalColumns];
         // Create a 2d boolean array that matches the size of the game board for our recursive function
-        isBlockVisited = new boolean[totalRows][totalColumns];
+        mIsBlockVisited = new boolean[mTotalRows][mTotalColumns];
 
         //for every row
-        for (int row = 0; row < totalRows; row++) {
+        for (int row = 0; row < mTotalRows; row++) {
+
             //create a new table row
             TableRow tableRow = new TableRow(this);
-            //set the height and width of the row
-//            blockSize = 125;
             int blockPadding = 1;
-            tableRow.setLayoutParams(new TableRow.LayoutParams((blockSize * blockPadding) * totalColumns, blockSize * blockPadding));
+            tableRow.setLayoutParams(new TableRow.LayoutParams((ratio * blockPadding) * mTotalColumns, ratio * blockPadding));
 
             //for every column
-            for (int col = 0; col < totalColumns; col++) {
+            for (int col = 0; col < mTotalColumns; col++) {
                 //create a block
-                blocks[row][col] = new Block(this);
+                mBlocks[row][col] = new Block(this);
                 //set the block defaults
-                blocks[row][col].setDefaults();
+                mBlocks[row][col].setDefaults();
                 //set the width and height of the block
-                blocks[row][col].setLayoutParams(new TableRow.LayoutParams(blockSize * blockPadding, blockSize * blockPadding));
+                mBlocks[row][col].setLayoutParams(new TableRow.LayoutParams(ratio * blockPadding, ratio * blockPadding));
                 //add some padding to the block
-                blocks[row][col].setPadding(blockPadding, blockPadding, blockPadding, blockPadding);
+                mBlocks[row][col].setPadding(blockPadding, blockPadding, blockPadding, blockPadding);
                 //add the block to the table row
-                tableRow.addView(blocks[row][col]);
+                tableRow.addView(mBlocks[row][col]);
 
                 final int curRow = row;
                 final int curCol = col;
 
                 //add a click listener
-                blocks[row][col].setOnClickListener(new View.OnClickListener() {
+                mBlocks[row][col].setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
 
                         // If game is over, all clicks will restart game
-                        if (isGameOver) {
-                            Intent easyGameIntent = getIntent();
-                            easyGameIntent.putExtra("newGameDifficulty", newGameDifficulty);
-                            finish();
-                            startActivity(easyGameIntent);
+                        if (mIsGameOver) {
+
+                            restartGameActivity();
 
                         } else {
 
                             // If the block is a mine, call lose game
-                            if (blocks[curRow][curCol].isMine() && !blocks[curRow][curCol].isFlagged()) {
+                            if (mBlocks[curRow][curCol].isMine() && !mBlocks[curRow][curCol].isFlagged()) {
 
                                 smileyFaceIV.setImageResource(R.drawable.ic_smiley_sad);
                                 loseGame();
@@ -292,16 +285,16 @@ public class MainActivity extends AppCompatActivity {
                             }
 
                             // If click is the first click, place all mines
-                            if (firstClick) {
+                            if (mFirstClick) {
                                 placeMinesOnBoard(curRow, curCol);
-                                revealFirstBlock(blocks, curRow, curCol);
+                                revealFirstBlock(mBlocks, curRow, curCol);
                                 // Start the game timer on first click
                                 startTimer();
 
                             } else {
 
-                                if (!blocks[curRow][curCol].isFlagged()) {
-                                    blocks[curRow][curCol].flipBlock();
+                                if (!mBlocks[curRow][curCol].isFlagged()) {
+                                    mBlocks[curRow][curCol].flipBlock();
                                 }
                             }
                         }
@@ -309,26 +302,23 @@ public class MainActivity extends AppCompatActivity {
                 });
 
                 //add a long click listener
-                blocks[row][col].setOnLongClickListener(new View.OnLongClickListener() {
+                mBlocks[row][col].setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View view) {
 
                         // If game is over, all clicks will start new game
-                        if (isGameOver) {
-                            Intent easyGameIntent = getIntent();
-                            easyGameIntent.putExtra("newGameDifficulty", newGameDifficulty);
-                            finish();
-                            startActivity(easyGameIntent);
+                        if (mIsGameOver) {
+                            restartGameActivity();
 
                         } else {
 
                             // If it's not the first click, allow long presses
-                            if (!firstClick) {
+                            if (!mFirstClick) {
 
-                                if (!blocks[curRow][curCol].isRevealed()) {
+                                if (!mBlocks[curRow][curCol].isRevealed()) {
                                     // If the block already has a flag, remove it and update MINE_COUNT and textView
-                                    if (blocks[curRow][curCol].isFlagged()) {
-                                        blocks[curRow][curCol].removeFlag();
+                                    if (mBlocks[curRow][curCol].isFlagged()) {
+                                        mBlocks[curRow][curCol].removeFlag();
                                         mineCountTV.setText(String.valueOf(++Block.MINE_COUNT));
 
                                         // Otherwise, plant a flag and update static MINE_COUNT and textView
@@ -339,20 +329,18 @@ public class MainActivity extends AppCompatActivity {
                                             // Give vibration feedback of the flag placement
                                             vibrate(500);
 
-                                            blocks[curRow][curCol].plantFlag();
+                                            mBlocks[curRow][curCol].plantFlag();
                                             mineCountTV.setText(String.valueOf(--Block.MINE_COUNT));
                                         } else {
-                                            Toast.makeText(MainActivity.this, "You have already flagged all supposed mines. Questioning yourself now, are you?", Toast.LENGTH_LONG).show();
+                                            Toast.makeText(MainActivity.this, R.string.too_many_flags_toast, Toast.LENGTH_LONG).show();
                                         }
                                     }
                                 }
                             }
                         }
 
-                        Log.d(TAG, "correctFlagsPlaced = " + correctFlagsPlaced);
-
                         // If blocks left = mineCount player wins
-                        if (correctFlagsPlaced == totalMines) {
+                        if (mCorrectFlagsPlaced == mTotalMines) {
                             winGame();
                         }
 
@@ -362,7 +350,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
             //add the row to the tableLayout
-            tableLayout.addView(tableRow, new TableLayout.LayoutParams((blockSize * blockPadding) * totalColumns, blockSize * blockPadding));
+            mTableLayout.addView(tableRow, new TableLayout.LayoutParams((ratio * blockPadding) * mTotalColumns, ratio * blockPadding));
         }
     }
 
@@ -370,10 +358,10 @@ public class MainActivity extends AppCompatActivity {
     public void revealFirstBlock(Block[][] blocks, int x, int y) {
 
         //Set global first click to false to alter click functions
-        firstClick = false;
+        mFirstClick = false;
 
         // Exit for oob
-        if (x > totalRows - 1 || x < 0 || y > totalColumns - 1 || y < 0) {
+        if (x > mTotalRows - 1 || x < 0 || y > mTotalColumns - 1 || y < 0) {
             return;
         }
 
@@ -381,12 +369,12 @@ public class MainActivity extends AppCompatActivity {
         blocks[x][y].flipBlock();
 
         // Exit if this block is checked
-        if (isBlockVisited[x][y]) {
+        if (mIsBlockVisited[x][y]) {
             return;
         }
 
         // If this point is reached, set the block corresponding to this index to true
-        isBlockVisited[x][y] = true;
+        mIsBlockVisited[x][y] = true;
 
 
         // If block is not a mine and does not border any mines
@@ -406,32 +394,32 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Randomly place mines on the board. Special cases below.
     public void placeMinesOnBoard(int row, int col) {
 
         int mineRow;
         int mineCol;
-        firstClick = false;
+        mFirstClick = false;
 
         Random random = new Random();
 
-        for (int i = 0; i < totalMines; i++) {
+        for (int i = 0; i < mTotalMines; i++) {
 
             // Generate random positions for rows and columns
-            mineRow = random.nextInt(totalRows);
-            mineCol = random.nextInt(totalColumns);
+            mineRow = random.nextInt(mTotalRows);
+            mineCol = random.nextInt(mTotalColumns);
 
             // Check to make sure mine is not placed where the user first clicks subtract mine from total
             if (mineRow == row && mineCol == col) {
                 i--;
-                Toast.makeText(MainActivity.this, "Mine was going to be placed here", Toast.LENGTH_SHORT).show();
 
                 // Check to make sure the block is not already a mine, if so, subtract mine from total
-            } else if (blocks[mineRow][mineCol].isMine()) {
+            } else if (mBlocks[mineRow][mineCol].isMine()) {
                 i--;
 
             } else {
                 // If both tests pass, plant the mine
-                blocks[mineRow][mineCol].plantMine();
+                mBlocks[mineRow][mineCol].plantMine();
             }
         }
 
@@ -442,43 +430,43 @@ public class MainActivity extends AppCompatActivity {
         updateMineCount();
     }
 
+    // Counts each blocks adjacent mines to figure which int to display on that block
     private void countAdjacentMines() {
 
         // Set i to 0. While it's less than blocks.length do next and ++
         int i;
         int j;
-        for (i = 0; i < totalRows; i++) {
+        for (i = 0; i < mTotalRows; i++) {
 
             // Set j to 0. While it's less than blocks.length do next and ++
-            for (j = 0; j < totalColumns; j++) {
+            for (j = 0; j < mTotalColumns; j++) {
 
                 // If the current block is not a mine, do next
-                if (!blocks[i][j].isMine()) {
+                if (!mBlocks[i][j].isMine()) {
 
                     // Create a counter for mine count, starting at 0
                     int currentMineCount = 0;
 
-                    // Set p to i-1 and do next until p is == i+1 (Max of 3 times)
-                    int p;
+                    // Look -1, 0 and +1 from the current block(Range of 3 blocks)
                     int q;
-                    for (p = i - 1; p <= i + 1; p++) {
+                    int r;
+                    for (q = i - 1; q <= i + 1; q++) {
 
-                        // Set q to j-1 and do next until q is == j +1 (Max of 3 times)
-                        for (q = j - 1; q <= j + 1; q++) {
+                        // Look -1, 0 and +1 from the current block(Range of 3 blocks)
+                        for (r = j - 1; r <= j + 1; r++) {
 
                             // 4 statements to prevent out of bounds exception
-                            if (0 <= p && p < totalRows && 0 <= q && q < totalColumns) {
+                            if (0 <= q && q < mTotalRows && 0 <= r && r < mTotalColumns) {
 
                                 // If block at p/q is a mine, add 1 to currentMineCount
-                                if (blocks[p][q].isMine())
+                                if (mBlocks[q][r].isMine())
                                     ++currentMineCount;
                             }
                         }
                     }
 
                     // Set block objects values for number of adjacent mines and
-                    blocks[i][j].setNumberOfAdjacentMines(currentMineCount);
-//                    blocks[i][j].flipBlock();
+                    mBlocks[i][j].setNumberOfAdjacentMines(currentMineCount);
                 }
             }
         }
@@ -488,45 +476,108 @@ public class MainActivity extends AppCompatActivity {
     // Starts the game time when the first block is clicked
     public void startTimer() {
 
-        if (secondsPassed == 0) {
-            timer.removeCallbacks(updateTimeElapsed);
+        if (mSecondsPassed == 0) {
+            mTimer.removeCallbacks(updateTimeElapsed);
             // tell timer to run call back after 1 second
-            timer.postDelayed(updateTimeElapsed, 1);
+            mTimer.postDelayed(updateTimeElapsed, 1);
         }
     }
 
     // Resumes the ongoing game timer, called in onResume
     public void resumeTimer() {
-        if (secondsPassed != 0) {
-            timer.removeCallbacks(updateTimeElapsed);
+        if (mSecondsPassed != 0) {
+            mTimer.removeCallbacks(updateTimeElapsed);
             // tell timer to run call back after 1 second
-            timer.postDelayed(updateTimeElapsed, 1000);
+            mTimer.postDelayed(updateTimeElapsed, 1000);
         }
     }
 
     // Pauses the ongoing game timer, called in onPause
     public void stopTimer() {
         // disable call backs
-        timer.removeCallbacks(updateTimeElapsed);
+        mTimer.removeCallbacks(updateTimeElapsed);
     }
 
     // Runnable to track time and update gameTimerTV textView
     private Runnable updateTimeElapsed = new Runnable() {
         public void run() {
             long currentMilliseconds = System.currentTimeMillis();
-            ++secondsPassed;
-            gameTimerTV.setText(Integer.toString(secondsPassed));
+            ++mSecondsPassed;
+            gameTimerTV.setText(Integer.toString(mSecondsPassed));
 
             // add notification
-            timer.postAtTime(this, currentMilliseconds);
+            mTimer.postAtTime(this, currentMilliseconds);
             // notify to call back after 1 seconds
             // basically to remain in the timer loop
-            timer.postDelayed(updateTimeElapsed, 1000);
+            mTimer.postDelayed(updateTimeElapsed, 1000);
         }
     };
 
+
     public void winGame() {
-        Toast.makeText(MainActivity.this, "You win", Toast.LENGTH_LONG).show();
+
+        stopTimer();
+        incrementGameCount("won");
+        mIsGameOver = true;
+        smileyFaceIV.setImageResource(R.drawable.ic_smiley_big);
+
+        final Intent leaderBoardIntent = new Intent(MainActivity.this, LeaderBoardActivity.class);
+
+        Gson gson = new Gson();
+        String currentUserString = mSharedPreferences.getString("currentUser", "");
+        String fromJsonUser = mSharedPreferences.getString("user" + currentUserString, "");
+
+        User currentUserObject = gson.fromJson(fromJsonUser, User.class);
+        int userBestScore = currentUserObject.getHighScore();
+
+        int timeMultiplier = mSecondsPassed * 10;
+        int newScore = mInitialScore - timeMultiplier;
+
+        if (newScore > userBestScore) {
+
+            currentUserObject.setHighScore(newScore);
+            String toJsonUser = gson.toJson(currentUserObject);
+            mEditor.putString("user" + currentUserString, toJsonUser);
+            mEditor.commit();
+
+            mBuilder.setTitle("Win!");
+            mBuilder.setMessage("You have flagged all the mines and set a new high score with " + newScore + " points! Nice work!");
+            mBuilder.setPositiveButton("Play again", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    restartGameActivity();
+                }
+            });
+
+            mBuilder.setNegativeButton("Leader board", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    startActivity(leaderBoardIntent);
+                }
+            });
+
+            mBuilder.show();
+
+        } else {
+
+            mBuilder.setTitle("Win!");
+            mBuilder.setMessage("You flagged all the mines! Unfortunately you did not beat your record. Keep trying!");
+            mBuilder.setPositiveButton("Ty again", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    restartGameActivity();
+                }
+            });
+
+            mBuilder.setNegativeButton("Leader Board", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    startActivity(leaderBoardIntent);
+                }
+            });
+
+            mBuilder.show();
+        }
     }
 
     // Game over: Vibrate, stop timer, show all bombs, restart game on another click
@@ -534,21 +585,21 @@ public class MainActivity extends AppCompatActivity {
 
         vibrate(1000);
 
-        isGameOver = true;
+        mIsGameOver = true;
 
         stopTimer();
 
-        for (int i = 0; i < totalRows; i++) {
+        incrementGameCount("lost");
 
-            for (int j = 0; j < totalColumns; j++) {
+        for (int i = 0; i < mTotalRows; i++) {
 
-                if (blocks[i][j].isMine()) {
-                    blocks[i][j].showAllMines();
+            for (int j = 0; j < mTotalColumns; j++) {
+
+                if (mBlocks[i][j].isMine()) {
+                    mBlocks[i][j].showAllMines();
                 }
             }
         }
-
-
     }
 
     // This method will add to users total game count or won game count, based on the argument
@@ -558,14 +609,14 @@ public class MainActivity extends AppCompatActivity {
     public void incrementGameCount(String countToIncrement) {
 
         Gson gson = new Gson();
-        String currentUserString = sharedPreferences.getString("currentUser", "");
-        String fromJsonUser = sharedPreferences.getString("user" + currentUserString, "");
+        String currentUserString = mSharedPreferences.getString("currentUser", "");
+        String fromJsonUser = mSharedPreferences.getString("user" + currentUserString, "");
 
         User currentUserObject = gson.fromJson(fromJsonUser, User.class);
 
-        if (countToIncrement.equals("played")) {
-            int gamesPlayed = currentUserObject.getGamesPlayed();
-            currentUserObject.setGamesPlayed(gamesPlayed + 1);
+        if (countToIncrement.equals("lost")) {
+            int gamesLost = currentUserObject.getGamesLost();
+            currentUserObject.setGamesLost(gamesLost + 1);
 
         } else if (countToIncrement.equals("won")) {
             int gamesWon = currentUserObject.getGamesWon();
@@ -574,41 +625,233 @@ public class MainActivity extends AppCompatActivity {
 
         String toJsonUser = gson.toJson(currentUserObject);
 
-        editor.putString("user" + currentUserString, toJsonUser);
-        editor.commit();
+        mEditor.putString("user" + currentUserString, toJsonUser);
+        mEditor.commit();
+
+        updateUserList();
+    }
+
+    public void updateUserList() {
+
+        // If there is a currentUserList, get the users from that list and display them
+        if (mSharedPreferences.contains(ALL_USER_LIST)) {
+
+            Gson gson = new Gson();
+            List<User> allUserList;
+
+            String userNameString = mSharedPreferences.getString(CURRENT_USER, "");
+            String userJson = mSharedPreferences.getString(USER + userNameString, "");
+            User currentUserObject = gson.fromJson(userJson, User.class);
+
+            String json = mSharedPreferences.getString(ALL_USER_LIST, "");
+            User[] sharedPrefsUserList = gson.fromJson(json, User[].class);
+            allUserList = Arrays.asList(sharedPrefsUserList);
+            allUserList = new ArrayList<>(allUserList);
+
+            for (User user : allUserList) {
+
+                if (user.getName().equals(userNameString)) {
+
+                    allUserList.remove(user);
+                }
+            }
+
+            int currentUserHighScore = currentUserObject.getHighScore();
+            int currentUserGamesWon = currentUserObject.getGamesWon();
+            int currentUserGamesLost = currentUserObject.getGamesLost();
+
+            currentUserObject.setHighScore(currentUserHighScore);
+            currentUserObject.setGamesWon(currentUserGamesWon);
+            currentUserObject.setGamesLost(currentUserGamesLost);
+
+            allUserList.add(currentUserObject);
+
+            String userListJson = gson.toJson(allUserList);
+            mEditor.putString(ALL_USER_LIST, userListJson);
+            mEditor.commit();
+        }
     }
 
 
-    public void enterNewScore(final double finishTime) {
+    // Show new game dialog, and create new game board based on difficulty user chooses
+    public void startNewGame() {
 
-        final Dialog newScoreDialog = new Dialog(MainActivity.this);
-        newScoreDialog.setContentView(R.layout.dialog_new_score);
+        final Intent newGameIntent = getIntent();
 
-        AutoCompleteTextView nickNameAC = (AutoCompleteTextView) newScoreDialog.findViewById(R.id.ac_nickname);
-        TextView newScoreTV = (TextView) newScoreDialog.findViewById(R.id.tv_enter_score);
+        AlertDialog.Builder difficultyDialog = new AlertDialog.Builder(MainActivity.this, R.style.MyAlertDialogStyle);
+        difficultyDialog.setTitle("Choose difficulty");
+        difficultyDialog.setItems(new CharSequence[]{
+                        "Easy:   10 x 10 with 10 mines",
+                        "Medium:   10 x 20 with 20 mines",
+                        "Hard:   10 x 40 with 40 mines",
+                        "Insane:   10 x 80 with 160 mines"},
 
-        final Editable nickName = nickNameAC.getText();
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
 
-        if (newScoreTV != null) {
-            newScoreTV.setOnClickListener(new View.OnClickListener() {
+                        switch (which) {
+
+                            case 0:
+                                Toast.makeText(MainActivity.this, R.string.easy_toast, Toast.LENGTH_SHORT).show();
+                                newGameIntent.putExtra(NEW_GAME_DIFFICULTY, 1);
+
+                                break;
+
+                            case 1:
+                                Toast.makeText(MainActivity.this, R.string.medium_toast, Toast.LENGTH_SHORT).show();
+                                newGameIntent.putExtra(NEW_GAME_DIFFICULTY, 2);
+
+                                break;
+
+                            case 2:
+                                Toast.makeText(MainActivity.this, R.string.hard_toast, Toast.LENGTH_SHORT).show();
+                                newGameIntent.putExtra(NEW_GAME_DIFFICULTY, 3);
+
+                                break;
+
+                            case 3:
+                                Toast.makeText(MainActivity.this, R.string.insane_toast, Toast.LENGTH_SHORT).show();
+                                newGameIntent.putExtra(NEW_GAME_DIFFICULTY, 4);
+
+                                break;
+                        }
+
+                        finish();
+                        startActivity(newGameIntent);
+                    }
+                });
+
+        difficultyDialog.create().show();
+    }
+
+    // Ask the user if they would like to give up, if so, return to title activity
+    public void showGiveUpDialog() {
+
+        smileyFaceIV.setImageResource(R.drawable.ic_smiley_sad);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.MyAlertDialogStyle);
+        builder.setTitle("Giving up already?");
+        builder.setPositiveButton("Yes :(", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Intent titleActivityIntent = new Intent(MainActivity.this, TitleActivity.class);
+                startActivity(titleActivityIntent);
+            }
+        });
+
+        builder.setNegativeButton("No way, I can do it!", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        });
+
+        builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                smileyFaceIV.setImageResource(R.drawable.ic_smiley_happy);
+            }
+        });
+
+        builder.show();
+    }
+
+    // Show the users current stats
+    public void showStatsDialog() {
+
+        Gson gson = new Gson();
+        String currentUserString = mSharedPreferences.getString(CURRENT_USER, "");
+        String jsonUser = mSharedPreferences.getString(USER + currentUserString, "");
+
+        User currentUserObject = gson.fromJson(jsonUser, User.class);
+
+        String currentUserName = currentUserObject.getName();
+        int currentUserBestScore = currentUserObject.getHighScore();
+
+        double currentUserGamesWon = currentUserObject.getGamesWon();
+        String gamesWonString = String.format("%.0f", currentUserGamesWon);
+
+        double currentUserGamesPlayed = currentUserObject.getGamesPlayed();
+        String gamesPlayedString = String.format("%.0f", currentUserGamesPlayed);
+
+        double currentUserWinRatio = currentUserGamesWon / currentUserGamesPlayed;
+        currentUserWinRatio *= 100;
+
+        String winRatioString = String.format("%.0f", currentUserWinRatio);
+
+        if (currentUserGamesPlayed == 0) {
+            mBuilder.setMessage("You have not played any games yet.");
+            mBuilder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                 @Override
-                public void onClick(View v) {
-                    Toast.makeText(MainActivity.this, nickName + " with a time of " + finishTime, Toast.LENGTH_SHORT).show();
-                    newScoreDialog.dismiss();
-
+                public void onClick(DialogInterface dialog, int which) {
 
                 }
             });
+
+        } else {
+
+            mBuilder.setTitle(currentUserName + "'s " + "stats");
+
+            mBuilder.setMessage("Your high score is " + currentUserBestScore +
+                    "! You have won " + gamesWonString + " of your " + gamesPlayedString +
+                    " games; giving you a win percentage of " + winRatioString + "%" + "!");
+            mBuilder.setPositiveButton("Sweet!", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+
+                }
+            });
+
+            mBuilder.setNegativeButton("Leader board", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    Intent leaderBoardIntent = new Intent(MainActivity.this, LeaderBoardActivity.class);
+                    startActivity(leaderBoardIntent);
+                }
+            });
         }
-        newScoreDialog.show();
+
+        mBuilder.show();
     }
 
+    // Show about dialog
+    public void showAboutDialog() {
 
+        mBuilder.setTitle("Mine Sweeper \nKevin Hodges");
+        mBuilder.setMessage(getString(R.string.about_dialog));
+
+        mBuilder.setPositiveButton("Leave Feedback", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Toast.makeText(MainActivity.this, "To be implemented", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        mBuilder.setNegativeButton("Ok", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        });
+
+        mBuilder.show();
+
+    }
+
+    // Restart game with same difficulty
+    public void restartGameActivity() {
+
+        Intent easyGameIntent = getIntent();
+        easyGameIntent.putExtra(NEW_GAME_DIFFICULTY, mNewGameDifficulty);
+        finish();
+        startActivity(easyGameIntent);
+    }
+
+    // Simple vibrate method
     public void vibrate(int length) {
         Vibrator v = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
         v.vibrate(length);
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -621,185 +864,32 @@ public class MainActivity extends AppCompatActivity {
         final int id = item.getItemId();
 
         if (id == R.id.new_game) {
-
-
-            AlertDialog.Builder difficultyDialog = new AlertDialog.Builder(MainActivity.this, R.style.MyAlertDialogStyle);
-            difficultyDialog.setTitle("Choose difficulty");
-            difficultyDialog.setItems(new CharSequence[]{
-                            "Easy:   9 x 9 with 10 mines",
-                            "Medium:   9 x 15 with 20 mines",
-                            "Hard:   9 x 20 with 40 mines",
-                            "Insane:   9 x 100 with 200 mines"},
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-
-                            switch (which) {
-
-                                case 0:
-                                    Toast.makeText(MainActivity.this, "Easy: 9 x 9 with 10 mines", Toast.LENGTH_SHORT).show();
-//
-                                    Intent easyGameIntent = getIntent();
-                                    easyGameIntent.putExtra("newGameDifficulty", 1);
-                                    finish();
-                                    startActivity(easyGameIntent);
-                                    break;
-
-                                case 1:
-                                    Toast.makeText(MainActivity.this, "Medium: 9 x 15 with 20 mines", Toast.LENGTH_SHORT).show();
-
-                                    Intent mediumGameIntent = getIntent();
-                                    mediumGameIntent.putExtra("newGameDifficulty", 2);
-                                    finish();
-                                    startActivity(mediumGameIntent);
-                                    break;
-
-                                case 2:
-                                    Toast.makeText(MainActivity.this, "Hard: 9 x 20 with 40 mines", Toast.LENGTH_SHORT).show();
-
-                                    Intent hardGameIntent = getIntent();
-                                    hardGameIntent.putExtra("newGameDifficulty", 3);
-                                    finish();
-                                    startActivity(hardGameIntent);
-                                    break;
-
-                                case 3:
-                                    Toast.makeText(MainActivity.this, "Insane: 9 x 100 with 200 mine. Your device may have trouble, this is insane after all...", Toast.LENGTH_SHORT).show();
-
-                                    Intent insaneGameIntent = getIntent();
-                                    insaneGameIntent.putExtra("newGameDifficulty", 4);
-                                    finish();
-                                    startActivity(insaneGameIntent);
-                                    break;
-                            }
-                        }
-                    });
-            difficultyDialog.create().show();
+            startNewGame();
+            return true;
         }
 
         if (id == R.id.give_up) {
-
-            smileyFaceIV.setImageResource(R.drawable.ic_smiley_sad);
-
-            AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.MyAlertDialogStyle);
-            builder.setTitle("Giving up already?");
-            builder.setPositiveButton("Yes :(", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    Intent titleActivityIntent = new Intent(MainActivity.this, TitleActivity.class);
-                    startActivity(titleActivityIntent);
-                }
-            });
-
-            builder.setNegativeButton("No way, I can do it!", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-
-                    smileyFaceIV.setImageResource(R.drawable.ic_smiley_happy);
-                }
-            });
-
-            builder.show();
-
+            showGiveUpDialog();
             return true;
         }
 
         if (id == R.id.stats) {
-
-            Gson gson = new Gson();
-            String currentUserString = sharedPreferences.getString("currentUser", "");
-            String jsonUser = sharedPreferences.getString("user" + currentUserString, "");
-
-            User currentUserObject = gson.fromJson(jsonUser, User.class);
-
-            String currentUserName = currentUserObject.getName();
-            double currentUserBestTime = currentUserObject.getBestTime();
-            String currentUserDifficulty = currentUserObject.getDifficulty();
-
-            double currentUserGamesWon = currentUserObject.getGamesWon();
-            String gamesWonString = String.format("%.0f", currentUserGamesWon);
-
-            double currentUserGamesPlayed = currentUserObject.getGamesPlayed();
-            String gamesPlayedString = String.format("%.0f", currentUserGamesPlayed);
-
-            double currentUserWinRatio = currentUserGamesWon / currentUserGamesPlayed;
-            currentUserWinRatio *= 100;
-
-            String winRatioString = String.format("%.0f", currentUserWinRatio);
-
-            if (currentUserGamesPlayed == 0) {
-                builder.setMessage("You have not played any games yet.");
-                builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                    }
-                });
-
-            } else {
-
-                builder.setTitle(currentUserName + "'s " + "stats");
-
-                builder.setMessage("Your best time is " + currentUserBestTime + " seconds on " +
-                        currentUserDifficulty + " difficulty. You have won " + gamesWonString +
-                        " out of " + gamesPlayedString + " which is a win percentage of " + winRatioString + "%" + "!");
-                builder.setPositiveButton("Sweet!", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                    }
-                });
-            }
-
-            builder.show();
-
+            showStatsDialog();
             return true;
         }
 
         if (id == R.id.about) {
-
-            builder.setTitle("Mine Sweeper \nKevin Hodges");
-            builder.setMessage("This application was created " +
-                    "for a JP Morgan & Chase code assessment. It incorporates all of the tried" +
-                    " and true Mine Sweeper game play that you have grown to love, with a new, " +
-                    "polished, material design look. I made the decision to go with a " +
-                    "consistent 9 column layout for the game board regardless of the game board " +
-                    "difficulty chosen. This is not how the typical game is presented, but" +
-                    " I felt this allowed much easier mobile oriented/one handed game play which" +
-                    " adds to the experience. I hope you enjoy my version of this classic. " +
-                    "Please leave some feedback on Google Play. Thanks!");
-
-            builder.setPositiveButton("Leave Feedback", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-
-                }
-            });
-
-            builder.setNegativeButton("Ok", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-
-                }
-            });
-
-            builder.show();
-
+            showAboutDialog();
             return true;
         }
 
-        if (id == R.id.faq)
-
-        {
+        if (id == R.id.faq) {
             Intent faqIntent = new Intent(MainActivity.this, FAQActivity.class);
             startActivity(faqIntent);
             return true;
         }
 
-
-        return super.
-
-                onOptionsItemSelected(item);
-
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -814,47 +904,31 @@ public class MainActivity extends AppCompatActivity {
         stopTimer();
     }
 
-    //Getters and Setters
-    public int getTotalMines() {
-        return totalMines;
+    // Check if there is an on going game, if so, ask the user to verify exit
+    @Override
+    public void onBackPressed() {
+
+        if (!mFirstClick) {
+            mBuilder.setTitle("Leave game");
+            mBuilder.setMessage("Game will be lost. Are you sure you would like to leave this game?");
+            mBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    finish();
+                }
+            });
+
+            mBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+
+                }
+            });
+
+            mBuilder.show();
+
+        } else {
+            super.onBackPressed();
+        }
     }
-
-    public void setTotalMines(int totalMines) {
-        this.totalMines = totalMines;
-    }
-
-    public static int getRevealedBlockCount() {
-        return revealedBlockCount;
-    }
-
-    public static void setRevealedBlockCount(int revealedBlockCount) {
-        MainActivity.revealedBlockCount = revealedBlockCount;
-    }
-
-
-    // TODO: 4/23/2016
-    //override on Back pressed with "Press again to exit"
-    //run method to look at each block and current state of each block
-    //create new 2d array
-    // for i= 0 to minefield.width
-    // for j = 0 to minefield.height
-    //iterate thru and store value of each block in the new array
-    // if value of block is mine, then store 9
-    // if value of block is number, then store number
-    // if value is flag and mine, then store 11
-
-    // example 2d array
-    // 4    0   11      9
-    // 3    1   4       6
-    // 11   0   0       0
-    // 3    0   1       5
-
-    //Time
-    //Mines left
-    // Empty is 0. Numbers are 1-8. Mine is -1. Mine with flag is -11. Number with flag = number+10
-
-    //store this array in the exit in the Bundle outstate/savedInstanceState or sharedPrefs
-    //when game is loaded, look to see if "savedGame" exists, if so, then load this saved array
-    //and assign the minefield conditions according whatever integers are stored by iterating thru
-    //saved array
 }

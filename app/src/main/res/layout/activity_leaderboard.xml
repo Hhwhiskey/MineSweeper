@@ -26,7 +26,8 @@
         android:layout_alignTop="@+id/bttn_new_user"
         android:layout_alignBottom="@+id/bttn_new_user"
         android:layout_toLeftOf="@+id/bttn_new_user"
-        android:layout_toStartOf="@+id/bttn_new_user">
+        android:layout_toStartOf="@+id/bttn_new_user"
+        android:id="@+id/view">
 
     </android.support.design.widget.TextInputLayout>
 
@@ -59,7 +60,7 @@
         android:id="@+id/linearLayout2"
         android:layout_alignLeft="@+id/ac_new_user"
         android:layout_alignStart="@+id/ac_new_user"
-        android:layout_marginLeft="24dp"
+        android:layout_marginLeft="8dp"
         android:layout_marginBottom="16dp"
         android:layout_marginTop="8dp">
 
@@ -76,7 +77,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="time"
+            android:text="score"
             android:id="@+id/textView2"
             android:layout_weight="1"
             android:textSize="20dp" />
@@ -87,7 +88,7 @@
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:text="won"
             android:id="@+id/textView5"
-            android:layout_weight="1"
+            android:layout_weight=".4"
             android:textSize="20dp" />
 
         <TextView
@@ -96,8 +97,19 @@
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:text="played"
             android:id="@+id/textView7"
-            android:layout_weight="1"
+            android:layout_weight=".4"
             android:textSize="20dp" />
     </LinearLayout>
+
+    <HorizontalScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/horizontalScrollView2"
+        android:layout_above="@+id/view"
+        android:layout_alignRight="@+id/bttn_new_user"
+        android:layout_alignEnd="@+id/bttn_new_user"
+        android:layout_below="@+id/linearLayout2"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
 </RelativeLayout>

@@ -18,7 +18,9 @@ import com.kevinhodges.minesweeper.R;
 
 public class TitleActivity extends AppCompatActivity {
 
-
+    private static final String TAG = "TitleActivity";
+    private static final String NEW_GAME_DIFFICULTY = "newGameDifficulty";
+    private static final String CURRENT_USER = "currentUser";
     private Button newGameButton;
     private Button leaderBoardsButton;
     private TextView sweeperTV;
@@ -84,53 +86,46 @@ public class TitleActivity extends AppCompatActivity {
 
     public void startNewGameDialog() {
 
+        final Intent newGameIntent = new Intent(TitleActivity.this, MainActivity.class);
+
         AlertDialog.Builder difficultyDialog = new AlertDialog.Builder(TitleActivity.this, R.style.MyAlertDialogStyle);
         difficultyDialog.setTitle("Choose difficulty");
         difficultyDialog.setItems(new CharSequence[]{
-                        "Easy:   9 x 9 with 10 mines",
-                        "Medium:   15 x 15 with 20 mines",
-                        "Hard:   20 x 20 with 40 mines",
-                        "Insane:   9 x 100 with 200 mines"},
+                        "Easy:   10 x 10 with 10 mines",
+                        "Medium:   10 x 20 with 20 mines",
+                        "Hard:   10 x 40 with 40 mines",
+                        "Insane:   10 x 80 with 160 mines"},
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
 
                         switch (which) {
 
                             case 0:
+                                Toast.makeText(TitleActivity.this, R.string.easy_toast, Toast.LENGTH_SHORT).show();
+                                newGameIntent.putExtra(NEW_GAME_DIFFICULTY, 1);
 
-                                Toast.makeText(TitleActivity.this, "Easy: 9 x 9 with 10 mines", Toast.LENGTH_SHORT).show();
-
-                                Intent easyGameIntent = new Intent(TitleActivity.this, MainActivity.class);
-                                easyGameIntent.putExtra("newGameDifficulty", 1);
-                                startActivity(easyGameIntent);
                                 break;
 
                             case 1:
+                                Toast.makeText(TitleActivity.this, R.string.medium_toast, Toast.LENGTH_SHORT).show();
+                                newGameIntent.putExtra(NEW_GAME_DIFFICULTY, 2);
 
-                                Toast.makeText(TitleActivity.this, "Medium: 15 x 15 with 20 mines", Toast.LENGTH_SHORT).show();
-
-                                Intent mediumGameIntent = new Intent(TitleActivity.this, MainActivity.class);
-                                mediumGameIntent.putExtra("newGameDifficulty", 2);
-                                startActivity(mediumGameIntent);
                                 break;
 
                             case 2:
+                                Toast.makeText(TitleActivity.this, R.string.hard_toast, Toast.LENGTH_SHORT).show();
+                                newGameIntent.putExtra(NEW_GAME_DIFFICULTY, 3);
 
-                                Toast.makeText(TitleActivity.this, "Hard: 20 x 20 with 40 mines", Toast.LENGTH_SHORT).show();
-
-                                Intent hardGameIntent = new Intent(TitleActivity.this, MainActivity.class);
-                                hardGameIntent.putExtra("newGameDifficulty", 3);
-                                startActivity(hardGameIntent);
                                 break;
 
                             case 3:
-                                Toast.makeText(TitleActivity.this, "Insane: 9 x 100 with 200 mine. Your device may have trouble, this is insane after all...", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(TitleActivity.this, R.string.insane_toast, Toast.LENGTH_SHORT).show();
+                                newGameIntent.putExtra(NEW_GAME_DIFFICULTY, 4);
 
-                                Intent insaneGameIntent = new Intent(TitleActivity.this, MainActivity.class);
-                                insaneGameIntent.putExtra("newGameDifficulty", 4);
-                                startActivity(insaneGameIntent);
                                 break;
                         }
+
+                        startActivity(newGameIntent);
                     }
                 });
 
@@ -141,7 +136,7 @@ public class TitleActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        mCurrentUser = sharedPreferences.getString("currentUser", "");
+        mCurrentUser = sharedPreferences.getString(CURRENT_USER, "");
 
         currentUserTV.setText(mCurrentUser);
     }

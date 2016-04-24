@@ -25,12 +25,14 @@ import java.util.List;
  */
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder> {
 
+    private static final String TAG = "UserAdapter";
+    private static final String ALL_USER_LIST = "allUserList";
     private List mData;
     private Context mContext;
     private LayoutInflater mInflater;
-    private AlertDialog.Builder builder;
-    private SharedPreferences sharedPreferences;
-    private SharedPreferences.Editor editor;
+    private AlertDialog.Builder mBuilder;
+    private SharedPreferences mSharedPreferences;
+    private SharedPreferences.Editor mEditor;
 
     public UserAdapter(Context context, List data) {
         this.mData = data;
@@ -84,50 +86,48 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
             customRow.setOnLongClickListener(this);
             userName.setText(current.getName());
 
-            String bestDifficulty = current.getDifficulty();
+            int highScore = current.getHighScore();
 
-            if (bestDifficulty.equals("0")) {
+            if (highScore == 0) {
                 bestTime.setText("No wins yet");
+
             } else {
-                bestTime.setText(String.valueOf(current.getBestTime()) + " on " + bestDifficulty);
+
+                bestTime.setText(String.valueOf(current.getHighScore()));
             }
 
-
-            gamesWon.setText(String.valueOf(current.getGamesWon()) + " won");
-            gamesPlayed.setText(String.valueOf(current.getGamesPlayed()) + " played");
-
-
+            gamesWon.setText(String.valueOf(current.getGamesWon()));
+            gamesPlayed.setText(String.valueOf(current.getGamesPlayed()));
         }
 
         @Override
         public void onClick(final View v) {
             if (v == customRow) {
-                builder = new AlertDialog.Builder(v.getRootView().getContext());
-                builder.setTitle("Switch User");
-                builder.setMessage("Are you sure you would like to switch to " + userName.getText().toString());
-                builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                mBuilder = new AlertDialog.Builder(v.getRootView().getContext(), R.style.MyAlertDialogStyle);
+                mBuilder.setTitle("Switch User");
+                mBuilder.setMessage("Are you sure you would like to switch to " + userName.getText().toString());
+                mBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(v.getRootView().getContext());
-                        editor = sharedPreferences.edit();
-                        editor.putString("currentUser", userName.getText().toString());
-                        editor.commit();
+                        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(v.getRootView().getContext());
+                        mEditor = mSharedPreferences.edit();
+                        mEditor.putString("currentUser", userName.getText().toString());
+                        mEditor.commit();
 
                         Toast.makeText(v.getRootView().getContext(), "Profile changed to " + userName.getText().toString(), Toast.LENGTH_LONG).show();
                     }
                 });
 
-                builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                mBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
                     }
                 });
 
-                builder.show();
+                mBuilder.show();
             }
         }
-
 
         @Override
         public boolean onLongClick(View v) {
@@ -139,21 +139,18 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
 
         public void deleteUser(View v, final int position) {
 
-            sharedPreferences = PreferenceManager.getDefaultSharedPreferences(v.getRootView().getContext());
-            editor = sharedPreferences.edit();
+            mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(v.getRootView().getContext());
+            mEditor = mSharedPreferences.edit();
 
-            builder = new AlertDialog.Builder(v.getRootView().getContext());
-            builder.setTitle("Delete User");
-            builder.setMessage("Are you sure you would like to delete " + userName.getText().toString() + "?");
-            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            mBuilder = new AlertDialog.Builder(v.getRootView().getContext(), R.style.MyAlertDialogStyle);
+            mBuilder.setTitle("Delete User");
+            mBuilder.setMessage("Are you sure you would like to delete " + userName.getText().toString() + "?");
+            mBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-//                    String userToDelete = "user" + userName.getText().toString();
-//                    String sharedPrefUserToDelete = sharedPreferences.getString("user" + userToDelete, "");
-//                    sharedPreferences.edit().remove(sharedPrefUserToDelete).commit();\
 
                     Gson gson = new Gson();
-                    String json = sharedPreferences.getString("allUserList", "");
+                    String json = mSharedPreferences.getString(ALL_USER_LIST, "");
 
                     User[] sharedPrefsUserList = gson.fromJson(json, User[].class);
                     List<User> allUserList = Arrays.asList(sharedPrefsUserList);
@@ -162,8 +159,8 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
                     allUserList.remove(position);
                     String userListJson = gson.toJson(allUserList);
 
-                    editor.putString("allUserList", userListJson);
-                    editor.commit();
+                    mEditor.putString(ALL_USER_LIST, userListJson);
+                    mEditor.commit();
 
                     mData.remove(position);
                     notifyItemRemoved(position);
@@ -171,14 +168,14 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
                 }
             });
 
-            builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            mBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
 
                 }
             });
 
-            builder.show();
+            mBuilder.show();
         }
     }
 }

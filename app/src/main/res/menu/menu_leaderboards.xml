@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/leaderboardStats"
+        android:id="@+id/leaderboardInfo"
         android:icon="@drawable/ic_question_mark"
         android:title="Info"
         app:showAsAction="always"/>

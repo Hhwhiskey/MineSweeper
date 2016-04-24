@@ -1,13 +1,12 @@
 <resources>
     <string name="app_name">Mine Sweeper</string>
-
-    //Leaderboard values
-    <string name="app_id">119585823884</string>
-    <string name="package_name">com.kevinhodges.minesweeper</string>
-    <string name="leaderboard_easy">CgkIjLn7vr0DEAIQAA</string>
-    <string name="leaderboard_medium">CgkIjLn7vr0DEAIQAQ</string>
-    <string name="leaderboard_hard">CgkIjLn7vr0DEAIQAg</string>
-    <string name="leaderboard_win_ratio">CgkIjLn7vr0DEAIQBg</string>
-    <string name="event_games_won">CgkIjLn7vr0DEAIQBA</string>
-    <string name="event_total_games">CgkIjLn7vr0DEAIQBQ</string>
+    <string name="insane_toast">Insane: 10 x 80 with 160 mine</string>
+    <string name="hard_toast">Hard: 10 x 40 with 40 mines</string>
+    <string name="medium_toast">Medium: 10 x 20 with 20 mines</string>
+    <string name="easy_toast">Easy: 10 x 10 with 10 mines</string>
+    <string name="about_dialog"><![CDATA[This application was created for a JP Morgan & Chase code assessment. It incorporates all of the tried and true Mine Sweeper game play that you have grown to love, with a new, polished, material design look. I made the decision to go with a consistent 9 column layout for the game board regardless of the game board difficulty chosen. This is not how the typical game is presented, but I felt this allowed much easier mobile oriented/one handed game play which adds to the experience. I hope you enjoy my version of this classic. Please leave some feedback on Google Play. Thanks!]]></string>
+    <string name="mines_toast">The amount of mines left. But who knows if you placed your flags correctly...</string>
+    <string name="timer_toast">The clock is ticking! Hurry up, this is how you will be ranked!</string>
+    <string name="too_many_flags_toast">You have already flagged all supposed mines. Questioning yourself now, are you?</string>
+    <string name="leaderboard_info">This is the leader board. You can create new users here. Press a user to switch to that profile. Long press to delete that user.</string>
 </resources>
