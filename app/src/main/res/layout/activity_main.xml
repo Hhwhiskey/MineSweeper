@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".activities.MainActivity"
-    android:background="@color/background_material_dark">
+    android:background="@color/colorBackground">
 
     <include
         android:id="@+id/toolbar"
@@ -100,8 +100,9 @@
         android:layout_below="@+id/toolbar"
         android:layout_centerHorizontal="true"
         android:layout_gravity="center_horizontal"
+        android:src="@drawable/ic_smiley_happy"
         android:layout_marginTop="6dp"
-        android:src="@drawable/ic_smiley_happy" />
+        android:paddingBottom="2dp" />
 
     <ScrollView
         android:layout_width="match_parent"

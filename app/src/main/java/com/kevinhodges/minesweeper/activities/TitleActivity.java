@@ -46,15 +46,20 @@ public class TitleActivity extends AppCompatActivity {
         currentUserTV = (TextView) findViewById(R.id.tv_current_user);
         ///////////////////////////////////////////////////////////////////////////
 
-        if (currentUserTV != null) {
-            currentUserTV.setText(mCurrentUser);
-        }
-
-
         newGameButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startNewGameDialog();
+
+                if (currentUserTV.getText().toString().equals("")) {
+                    Intent createUserIntent = new Intent(TitleActivity.this, LeaderBoardActivity.class);
+                    startActivity(createUserIntent);
+                    Toast.makeText(TitleActivity.this, "Create a user so your stats can be tracked", Toast.LENGTH_LONG).show();
+
+                } else {
+
+                    startNewGameDialog();
+
+                }
             }
         });
 

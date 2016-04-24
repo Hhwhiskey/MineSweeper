@@ -9,7 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
+import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -65,12 +65,12 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         TextView bestTime;
         TextView gamesWon;
         TextView gamesPlayed;
-        LinearLayout customRow;
+        TableLayout tl;
 
         public UserViewHolder(View itemView) {
             super(itemView);
 
-            customRow = (LinearLayout) itemView.findViewById(R.id.layout_custom_row);
+            tl = (TableLayout) itemView.findViewById(R.id.tl_leaderboard);
             userName = (TextView) itemView.findViewById(R.id.cr_user_name);
             bestTime = (TextView) itemView.findViewById(R.id.cr_best_time);
             gamesWon = (TextView) itemView.findViewById(R.id.cr_games_won);
@@ -82,14 +82,14 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
 
             User current = (User) mData.get(position);
 
-            customRow.setOnClickListener(this);
-            customRow.setOnLongClickListener(this);
+            tl.setOnClickListener(this);
+            tl.setOnLongClickListener(this);
             userName.setText(current.getName());
 
             int highScore = current.getHighScore();
 
             if (highScore == 0) {
-                bestTime.setText("No wins yet");
+                bestTime.setText("N/A");
 
             } else {
 
@@ -102,7 +102,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
 
         @Override
         public void onClick(final View v) {
-            if (v == customRow) {
+            if (v == tl) {
                 mBuilder = new AlertDialog.Builder(v.getRootView().getContext(), R.style.MyAlertDialogStyle);
                 mBuilder.setTitle("Switch User");
                 mBuilder.setMessage("Are you sure you would like to switch to " + userName.getText().toString());

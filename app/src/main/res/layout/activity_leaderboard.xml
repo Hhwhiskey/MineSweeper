@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activities.LeaderBoardActivity">
+    tools:context=".activities.LeaderBoardActivity"
+    android:background="@color/colorBackground">
 
     <include
         android:id="@+id/toolbar"
@@ -15,8 +16,7 @@
         android:layout_height="match_parent"
         android:layout_above="@+id/bttn_new_user"
         android:id="@+id/rv_user"
-
-        android:layout_below="@+id/linearLayout2">
+        android:layout_below="@+id/table_layout">
     </android.support.v7.widget.RecyclerView>
 
 
@@ -40,7 +40,7 @@
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:id="@+id/ac_new_user"
-        android:hint="new user name"/>
+        android:hint="new user..." />
 
     <Button
         android:layout_width="wrap_content"
@@ -49,67 +49,76 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:text="New User"
+        android:text="Create"
         android:background="@color/colorPrimary"/>
 
-    <LinearLayout
-        android:orientation="horizontal"
+    <TableLayout
         android:layout_width="match_parent"
         android:layout_height="25dp"
         android:layout_below="@+id/toolbar"
-        android:id="@+id/linearLayout2"
+        android:id="@+id/table_layout"
         android:layout_alignLeft="@+id/ac_new_user"
         android:layout_alignStart="@+id/ac_new_user"
         android:layout_marginLeft="8dp"
         android:layout_marginBottom="16dp"
-        android:layout_marginTop="8dp">
+        android:layout_marginTop="8dp"
+        android:layout_gravity="center">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="user"
-            android:id="@+id/textView4"
-            android:layout_weight="1"
-            android:textSize="20dp" />
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="score"
-            android:id="@+id/textView2"
-            android:layout_weight="1"
-            android:textSize="20dp" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="user"
+                android:id="@+id/textView4"
+                android:layout_weight="1"
+                android:textSize="20dp"
+                android:layout_marginLeft="16dp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="won"
-            android:id="@+id/textView5"
-            android:layout_weight=".4"
-            android:textSize="20dp" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="score"
+                android:id="@+id/textView2"
+                android:layout_weight="1"
+                android:textSize="20dp"
+                android:layout_marginLeft="20dp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="played"
-            android:id="@+id/textView7"
-            android:layout_weight=".4"
-            android:textSize="20dp" />
-    </LinearLayout>
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="won"
+                android:id="@+id/textView5"
+                android:layout_weight="1"
+                android:textSize="20dp"
+                android:layout_marginLeft="30dp" />
 
-    <HorizontalScrollView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/horizontalScrollView2"
-        android:layout_above="@+id/view"
-        android:layout_alignRight="@+id/bttn_new_user"
-        android:layout_alignEnd="@+id/bttn_new_user"
-        android:layout_below="@+id/linearLayout2"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="played"
+                android:id="@+id/textView7"
+                android:layout_weight="1"
+                android:textSize="20dp"
+                android:layout_marginLeft="16dp" />
+        </TableRow>
+    </TableLayout>
+
+    <!--<HorizontalScrollView-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:id="@+id/horizontalScrollView2"-->
+        <!--android:layout_above="@+id/view"-->
+        <!--android:layout_alignRight="@+id/bttn_new_user"-->
+        <!--android:layout_alignEnd="@+id/bttn_new_user"-->
+        <!--android:layout_below="@+id/ta"-->
+        <!--android:layout_alignParentLeft="true"-->
+        <!--android:layout_alignParentStart="true" />-->
 
 </RelativeLayout>

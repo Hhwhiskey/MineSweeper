@@ -523,6 +523,7 @@ public class MainActivity extends AppCompatActivity {
 
         final Intent leaderBoardIntent = new Intent(MainActivity.this, LeaderBoardActivity.class);
 
+        // Get currentUser from shared prefs json and create as a User
         Gson gson = new Gson();
         String currentUserString = mSharedPreferences.getString("currentUser", "");
         String fromJsonUser = mSharedPreferences.getString("user" + currentUserString, "");
@@ -561,8 +562,8 @@ public class MainActivity extends AppCompatActivity {
         } else {
 
             mBuilder.setTitle("Win!");
-            mBuilder.setMessage("You flagged all the mines! Unfortunately you did not beat your record. Keep trying!");
-            mBuilder.setPositiveButton("Ty again", new DialogInterface.OnClickListener() {
+            mBuilder.setMessage(getString(R.string.win_message_no_record));
+            mBuilder.setPositiveButton("Try again", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     restartGameActivity();
@@ -578,6 +579,8 @@ public class MainActivity extends AppCompatActivity {
 
             mBuilder.show();
         }
+
+        updateUserList();
     }
 
     // Game over: Vibrate, stop timer, show all bombs, restart game on another click
@@ -600,6 +603,8 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+
+        updateUserList();
     }
 
     // This method will add to users total game count or won game count, based on the argument
@@ -624,13 +629,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         String toJsonUser = gson.toJson(currentUserObject);
-
         mEditor.putString("user" + currentUserString, toJsonUser);
         mEditor.commit();
-
-        updateUserList();
     }
 
+    // This method will update the user list stored in shared prefs
     public void updateUserList() {
 
         // If there is a currentUserList, get the users from that list and display them
@@ -648,6 +651,7 @@ public class MainActivity extends AppCompatActivity {
             allUserList = Arrays.asList(sharedPrefsUserList);
             allUserList = new ArrayList<>(allUserList);
 
+            // Delete the old user with the matching name
             for (User user : allUserList) {
 
                 if (user.getName().equals(userNameString)) {
@@ -656,16 +660,20 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
+            // Get the currentUser properties
             int currentUserHighScore = currentUserObject.getHighScore();
             int currentUserGamesWon = currentUserObject.getGamesWon();
             int currentUserGamesLost = currentUserObject.getGamesLost();
 
+            // Recreate the user with the new properties
             currentUserObject.setHighScore(currentUserHighScore);
             currentUserObject.setGamesWon(currentUserGamesWon);
             currentUserObject.setGamesLost(currentUserGamesLost);
 
+            // Add the user back to the list
             allUserList.add(currentUserObject);
 
+            // Turn userList into jsonString so it can be saved in shared prefs
             String userListJson = gson.toJson(allUserList);
             mEditor.putString(ALL_USER_LIST, userListJson);
             mEditor.commit();
@@ -766,6 +774,7 @@ public class MainActivity extends AppCompatActivity {
         User currentUserObject = gson.fromJson(jsonUser, User.class);
 
         String currentUserName = currentUserObject.getName();
+
         int currentUserBestScore = currentUserObject.getHighScore();
 
         double currentUserGamesWon = currentUserObject.getGamesWon();
@@ -817,20 +826,20 @@ public class MainActivity extends AppCompatActivity {
     // Show about dialog
     public void showAboutDialog() {
 
-        mBuilder.setTitle("Mine Sweeper \nKevin Hodges");
+        mBuilder.setTitle("Mine Sweeper");
         mBuilder.setMessage(getString(R.string.about_dialog));
 
-        mBuilder.setPositiveButton("Leave Feedback", new DialogInterface.OnClickListener() {
+        mBuilder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(MainActivity.this, "To be implemented", Toast.LENGTH_SHORT).show();
+
             }
         });
 
-        mBuilder.setNegativeButton("Ok", new DialogInterface.OnClickListener() {
+        mBuilder.setNegativeButton("Leave Feedback", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-
+                Toast.makeText(MainActivity.this, "Not released to Google Play yet", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -895,7 +904,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        resumeTimer();
+
+        if (!mIsGameOver) {
+            resumeTimer();
+        }
     }
 
     @Override
