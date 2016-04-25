@@ -652,14 +652,17 @@ public class MainActivity extends AppCompatActivity {
             allUserList = new ArrayList<>(allUserList);
 
             // Delete the old user with the matching name
+            User userToRemove = null;
             for (User user : allUserList) {
-
                 if (user.getName().equals(userNameString)) {
-
-                    allUserList.remove(user);
+                    // Don't delete the user yet - just mark the user for deletion.
+                    userToRemove = user;
                 }
             }
-
+            // It's now safe to remove the user.
+            if (userToRemove) {
+                allUserList.remove(user);
+            }
             // Get the currentUser properties
             int currentUserHighScore = currentUserObject.getHighScore();
             int currentUserGamesWon = currentUserObject.getGamesWon();
