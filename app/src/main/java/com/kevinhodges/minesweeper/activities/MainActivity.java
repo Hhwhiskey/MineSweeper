@@ -264,8 +264,9 @@ public class MainActivity extends AppCompatActivity {
                             // If the block is a mine, call lose game
                             if (mBlocks[curRow][curCol].isMine() && !mBlocks[curRow][curCol].isFlagged()) {
 
-                                smileyFaceIV.setImageResource(R.drawable.ic_smiley_sad);
-                                loseGame();
+                                gameIsLost();
+                                incrementUserGameCount("lost");
+                                updateUserList();
 
                             } else {
 
@@ -338,7 +339,10 @@ public class MainActivity extends AppCompatActivity {
 
                         // If blocks left = mineCount player wins
                         if (mCorrectFlagsPlaced == mTotalMines) {
-                            winGame();
+                            gameIsWon();
+                            updateUserHighScore();
+                            incrementUserGameCount("won");
+                            updateUserList();
                         }
 
                         return true;
@@ -510,13 +514,37 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-
-    public void winGame() {
+    public void gameIsWon() {
 
         stopTimer();
-        incrementUserGameCount("won");
+        vibrate(1000);
         mIsGameOver = true;
         smileyFaceIV.setImageResource(R.drawable.ic_smiley_big);
+    }
+
+    // Game over: Vibrate, stop timer, show all bombs, restart game on another click
+    public void gameIsLost() {
+
+        stopTimer();
+        vibrate(1000);
+        mIsGameOver = true;
+        smileyFaceIV.setImageResource(R.drawable.ic_smiley_sad);
+
+
+        for (int i = 0; i < mTotalRows; i++) {
+
+            for (int j = 0; j < mTotalColumns; j++) {
+
+                if (mBlocks[i][j].isMine()) {
+                    mBlocks[i][j].showAllMines();
+                }
+            }
+        }
+    }
+
+
+    // Alert the user they have won and update their score if they have
+    public void updateUserHighScore() {
 
         final Intent leaderBoardIntent = new Intent(MainActivity.this, LeaderBoardActivity.class);
 
@@ -576,33 +604,8 @@ public class MainActivity extends AppCompatActivity {
 
             mBuilder.show();
         }
-
-        updateUserList();
     }
 
-    // Game over: Vibrate, stop timer, show all bombs, restart game on another click
-    public void loseGame() {
-
-        vibrate(1000);
-
-        mIsGameOver = true;
-
-        stopTimer();
-
-        incrementUserGameCount("lost");
-
-        for (int i = 0; i < mTotalRows; i++) {
-
-            for (int j = 0; j < mTotalColumns; j++) {
-
-                if (mBlocks[i][j].isMine()) {
-                    mBlocks[i][j].showAllMines();
-                }
-            }
-        }
-
-        updateUserList();
-    }
 
     // This method will add to users total game count or won game count, based on the argument
     // Get the user json string from shared prefs
