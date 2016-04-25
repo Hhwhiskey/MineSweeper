@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.kevinhodges.minesweeper.R;
+import com.kevinhodges.minesweeper.utils.Constants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -111,7 +112,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
                     public void onClick(DialogInterface dialog, int which) {
                         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(v.getRootView().getContext());
                         mEditor = mSharedPreferences.edit();
-                        mEditor.putString("currentUser", userName.getText().toString());
+                        mEditor.putString(Constants.CURRENT_USER, userName.getText().toString());
                         mEditor.commit();
 
                         Toast.makeText(v.getRootView().getContext(), "Profile changed to " + userName.getText().toString(), Toast.LENGTH_LONG).show();

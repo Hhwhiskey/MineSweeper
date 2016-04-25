@@ -26,6 +26,7 @@ import com.google.gson.Gson;
 import com.kevinhodges.minesweeper.R;
 import com.kevinhodges.minesweeper.model.Block;
 import com.kevinhodges.minesweeper.model.User;
+import com.kevinhodges.minesweeper.utils.Constants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,10 +36,6 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
-    private static final String CURRENT_USER = "currentUser";
-    private static final String USER = "user";
-    private static final String NEW_GAME_DIFFICULTY = "newGameDifficulty";
-    private static final String ALL_USER_LIST = "allUserList";
     private int mNewGameDifficulty;
     private TableLayout mTableLayout;
     private int mTotalRows;
@@ -87,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
         ////////////////////////////////////////////////////////////////////////////////
 
         Intent getIntent = getIntent();
-        mNewGameDifficulty = getIntent.getIntExtra(NEW_GAME_DIFFICULTY, 0);
+        mNewGameDifficulty = getIntent.getIntExtra(Constants.NEW_GAME_DIFFICULTY, 0);
 
         mTimer = new Handler();
         mSecondsPassed = 0;
@@ -517,7 +514,7 @@ public class MainActivity extends AppCompatActivity {
     public void winGame() {
 
         stopTimer();
-        incrementGameCount("won");
+        incrementUserGameCount("won");
         mIsGameOver = true;
         smileyFaceIV.setImageResource(R.drawable.ic_smiley_big);
 
@@ -592,7 +589,7 @@ public class MainActivity extends AppCompatActivity {
 
         stopTimer();
 
-        incrementGameCount("lost");
+        incrementUserGameCount("lost");
 
         for (int i = 0; i < mTotalRows; i++) {
 
@@ -611,7 +608,7 @@ public class MainActivity extends AppCompatActivity {
     // Get the user json string from shared prefs
     // Convert it to a user object to interact with it
     // Convert it back to a jsonString to save it back to shared prefs
-    public void incrementGameCount(String countToIncrement) {
+    public void incrementUserGameCount(String countToIncrement) {
 
         Gson gson = new Gson();
         String currentUserString = mSharedPreferences.getString("currentUser", "");
@@ -637,27 +634,33 @@ public class MainActivity extends AppCompatActivity {
     public void updateUserList() {
 
         // If there is a currentUserList, get the users from that list and display them
-        if (mSharedPreferences.contains(ALL_USER_LIST)) {
+        if (mSharedPreferences.contains(Constants.ALL_USER_LIST)) {
 
             Gson gson = new Gson();
             List<User> allUserList;
 
-            String userNameString = mSharedPreferences.getString(CURRENT_USER, "");
-            String userJson = mSharedPreferences.getString(USER + userNameString, "");
+            String userNameString = mSharedPreferences.getString(Constants.CURRENT_USER, "");
+            String userJson = mSharedPreferences.getString(Constants.USER + userNameString, "");
             User currentUserObject = gson.fromJson(userJson, User.class);
 
-            String json = mSharedPreferences.getString(ALL_USER_LIST, "");
+            String json = mSharedPreferences.getString(Constants.ALL_USER_LIST, "");
             User[] sharedPrefsUserList = gson.fromJson(json, User[].class);
             allUserList = Arrays.asList(sharedPrefsUserList);
             allUserList = new ArrayList<>(allUserList);
 
             // Delete the old user with the matching name
+            User userToRemove = null;
             for (User user : allUserList) {
 
                 if (user.getName().equals(userNameString)) {
-
-                    allUserList.remove(user);
+                    // Don't delete the user yet - just mark the user for deletion.
+                    userToRemove = user;
                 }
+            }
+
+            // It's now safe to remove the user.
+            if (userToRemove != null) {
+                allUserList.remove(userToRemove);
             }
 
             // Get the currentUser properties
@@ -675,7 +678,7 @@ public class MainActivity extends AppCompatActivity {
 
             // Turn userList into jsonString so it can be saved in shared prefs
             String userListJson = gson.toJson(allUserList);
-            mEditor.putString(ALL_USER_LIST, userListJson);
+            mEditor.putString(Constants.ALL_USER_LIST, userListJson);
             mEditor.commit();
         }
     }
@@ -701,25 +704,25 @@ public class MainActivity extends AppCompatActivity {
 
                             case 0:
                                 Toast.makeText(MainActivity.this, R.string.easy_toast, Toast.LENGTH_SHORT).show();
-                                newGameIntent.putExtra(NEW_GAME_DIFFICULTY, 1);
+                                newGameIntent.putExtra(Constants.NEW_GAME_DIFFICULTY, 1);
 
                                 break;
 
                             case 1:
                                 Toast.makeText(MainActivity.this, R.string.medium_toast, Toast.LENGTH_SHORT).show();
-                                newGameIntent.putExtra(NEW_GAME_DIFFICULTY, 2);
+                                newGameIntent.putExtra(Constants.NEW_GAME_DIFFICULTY, 2);
 
                                 break;
 
                             case 2:
                                 Toast.makeText(MainActivity.this, R.string.hard_toast, Toast.LENGTH_SHORT).show();
-                                newGameIntent.putExtra(NEW_GAME_DIFFICULTY, 3);
+                                newGameIntent.putExtra(Constants.NEW_GAME_DIFFICULTY, 3);
 
                                 break;
 
                             case 3:
                                 Toast.makeText(MainActivity.this, R.string.insane_toast, Toast.LENGTH_SHORT).show();
-                                newGameIntent.putExtra(NEW_GAME_DIFFICULTY, 4);
+                                newGameIntent.putExtra(Constants.NEW_GAME_DIFFICULTY, 4);
 
                                 break;
                         }
@@ -768,8 +771,8 @@ public class MainActivity extends AppCompatActivity {
     public void showStatsDialog() {
 
         Gson gson = new Gson();
-        String currentUserString = mSharedPreferences.getString(CURRENT_USER, "");
-        String jsonUser = mSharedPreferences.getString(USER + currentUserString, "");
+        String currentUserString = mSharedPreferences.getString(Constants.CURRENT_USER, "");
+        String jsonUser = mSharedPreferences.getString(Constants.USER + currentUserString, "");
 
         User currentUserObject = gson.fromJson(jsonUser, User.class);
 
@@ -851,7 +854,7 @@ public class MainActivity extends AppCompatActivity {
     public void restartGameActivity() {
 
         Intent easyGameIntent = getIntent();
-        easyGameIntent.putExtra(NEW_GAME_DIFFICULTY, mNewGameDifficulty);
+        easyGameIntent.putExtra(Constants.NEW_GAME_DIFFICULTY, mNewGameDifficulty);
         finish();
         startActivity(easyGameIntent);
     }

@@ -23,6 +23,7 @@ import com.google.gson.Gson;
 import com.kevinhodges.minesweeper.R;
 import com.kevinhodges.minesweeper.model.User;
 import com.kevinhodges.minesweeper.model.UserAdapter;
+import com.kevinhodges.minesweeper.utils.Constants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,10 +31,6 @@ import java.util.List;
 
 public class LeaderBoardActivity extends AppCompatActivity {
 
-    private static final String NEW_GAME_DIFFICULTY = "newGameDifficulty";
-    private static final String ALL_USER_LIST = "allUserList";
-    private static final String CURRENT_USER = "currentUser";
-    private static final String USER = "user";
     private AlertDialog.Builder mBuilder;
     private SharedPreferences mSharedPreferences;
     private SharedPreferences.Editor mEditor;
@@ -52,7 +49,7 @@ public class LeaderBoardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_leaderboard);
 
-        setTitle("Leaderboards" );
+        setTitle("Leaderboard");
 
         mAllUserList = new ArrayList<>();
 
@@ -78,11 +75,13 @@ public class LeaderBoardActivity extends AppCompatActivity {
         newUserButton = (Button) findViewById(R.id.bttn_new_user);
         ///////////////////////////////////////////////////////////////////////////
 
+        if (newUserButton != null) {
+            newUserButton.setEnabled(false);
+        }
+
         newUserAC.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                // Disable enter button if less than 3 characters
-                newUserButton.setEnabled(false);
             }
 
             @Override
@@ -101,12 +100,12 @@ public class LeaderBoardActivity extends AppCompatActivity {
 
 
         // If there is a currentUserList, get the users from that list and display them
-        if (mSharedPreferences.contains(ALL_USER_LIST)) {
+        if (mSharedPreferences.contains(Constants.ALL_USER_LIST)) {
 
             Gson gson = new Gson();
             mAllUserList = new ArrayList<>();
 
-            String json = mSharedPreferences.getString(ALL_USER_LIST, "" );
+            String json = mSharedPreferences.getString(Constants.ALL_USER_LIST, "" );
             User[] sharedPrefsUserList = gson.fromJson(json, User[].class);
             mAllUserList = Arrays.asList(sharedPrefsUserList);
             mAllUserList = new ArrayList<>(mAllUserList);
@@ -135,9 +134,9 @@ public class LeaderBoardActivity extends AppCompatActivity {
 
                          // This block checks to see if the userName is already taken
                          // If so, it sets a global boolean isNameTaken to true
-                         if (mSharedPreferences.contains(ALL_USER_LIST)) {
+                         if (mSharedPreferences.contains(Constants.ALL_USER_LIST)) {
 
-                             String json = mSharedPreferences.getString(ALL_USER_LIST, "" );
+                             String json = mSharedPreferences.getString(Constants.ALL_USER_LIST, "" );
                              User[] sharedPrefsUserList = gson.fromJson(json, User[].class);
                              List<User> allUserList = Arrays.asList(sharedPrefsUserList);
                              allUserList = new ArrayList<>(allUserList);
@@ -151,37 +150,37 @@ public class LeaderBoardActivity extends AppCompatActivity {
                                      isNameTaken = true;
                                  }
                              }
+                         }
 
-                             // If the name is not taken, then create the user and add to userList
-                             if (!isNameTaken) {
-                                 // Create new User object
-                                 User user = new User(mNewUserString);
+                         // If the name is not taken, then create the user and add to userList
+                         if (!isNameTaken) {
+                             // Create new User object
+                             User user = new User(mNewUserString);
 
-                                 // Add the user to a temp list
-                                 mAllUserList.add(user);
+                             // Add the user to a temp list
+                             mAllUserList.add(user);
 
-                                 // Create json data for the user and the mAllUserList
-                                 String currentUserJson = gson.toJson(user);
-                                 String userListJson = gson.toJson(mAllUserList);
+                             // Create json data for the user and the mAllUserList
+                             String currentUserJson = gson.toJson(user);
+                             String userListJson = gson.toJson(mAllUserList);
 
-                                 // Save user data to shared prefs and set the currentUser
-                                 mEditor.putString(CURRENT_USER, mNewUserString);
-                                 mEditor.putString(USER + mNewUserString, currentUserJson);
-                                 mEditor.putString(ALL_USER_LIST, userListJson);
-                                 mEditor.commit();
+                             // Save user data to shared prefs and set the currentUser
+                             mEditor.putString(Constants.CURRENT_USER, mNewUserString);
+                             mEditor.putString(Constants.USER + mNewUserString, currentUserJson);
+                             mEditor.putString(Constants.ALL_USER_LIST, userListJson);
+                             mEditor.commit();
 
-                                 // Show the new user at the top of the user list
-                                 userRecyclerView.setAdapter(userAdapter);
+                             // Show the new user at the top of the user list
+                             userRecyclerView.setAdapter(userAdapter);
 
-                                 // Set edit text to ""
-                                 newUserAC.setText("" );
+                             // Set edit text to ""
+                             newUserAC.setText("" );
 
-                                 Toast.makeText(LeaderBoardActivity.this, "Profile switched to "
-                                         + mNewUserString, Toast.LENGTH_LONG).show();
+                             Toast.makeText(LeaderBoardActivity.this, "Profile switched to "
+                                     + mNewUserString, Toast.LENGTH_LONG).show();
 
-                                 Intent returnToTitleIntent = new Intent(LeaderBoardActivity.this, TitleActivity.class);
-                                 startActivity(returnToTitleIntent);
-                             }
+                             Intent returnToTitleIntent = new Intent(LeaderBoardActivity.this, TitleActivity.class);
+                             startActivity(returnToTitleIntent);
                          }
                      }
                  }
@@ -234,7 +233,7 @@ public class LeaderBoardActivity extends AppCompatActivity {
         // If all users are deleted from user list, then delete the current user so
         // user is forced to create one for stat tracking
         if (mAllUserList.isEmpty()) {
-            mEditor.putString(CURRENT_USER, "" );
+            mEditor.putString(Constants.CURRENT_USER, "" );
             mEditor.commit();
         }
     }
