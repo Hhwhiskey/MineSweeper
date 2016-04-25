@@ -10,12 +10,17 @@ public class User {
     private int gamesWon = 0;
     private int gamesLost = 0;
     private int gamesPlayed = 0;
+    private boolean isHighest = false;
 
 
     public User(String name) {
         this.name = name;
     }
 
+    public User(String name, int highScore) {
+        this.name = name;
+        this.highScore = highScore;
+    }
 
     public String getName() {
         return name;
@@ -51,5 +56,13 @@ public class User {
 
     public int getGamesPlayed() {
         return gamesWon + gamesLost;
+    }
+
+    public boolean isHighest() {
+        return isHighest;
+    }
+
+    public void setHighest(boolean highest) {
+        isHighest = highest;
     }
 }
