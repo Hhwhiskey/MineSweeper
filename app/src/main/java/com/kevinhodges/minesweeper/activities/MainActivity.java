@@ -529,7 +529,7 @@ public class MainActivity extends AppCompatActivity {
         vibrate(1000);
         mIsGameOver = true;
         smileyFaceIV.setImageResource(R.drawable.ic_smiley_sad);
-
+        Toast.makeText(MainActivity.this, "Boom!", Toast.LENGTH_SHORT).show();
 
         for (int i = 0; i < mTotalRows; i++) {
 

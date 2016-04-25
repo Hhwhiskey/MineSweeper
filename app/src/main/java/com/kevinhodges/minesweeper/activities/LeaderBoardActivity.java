@@ -12,7 +12,6 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,9 +24,11 @@ import com.kevinhodges.minesweeper.R;
 import com.kevinhodges.minesweeper.model.User;
 import com.kevinhodges.minesweeper.model.UserAdapter;
 import com.kevinhodges.minesweeper.utils.Constants;
+import com.kevinhodges.minesweeper.utils.CustomComparator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class LeaderBoardActivity extends AppCompatActivity {
@@ -45,8 +46,6 @@ public class LeaderBoardActivity extends AppCompatActivity {
     private List<User> mAllUserList;
     private Toolbar toolbar;
     private boolean isNameTaken = false;
-    private int userListSizeReference;
-    private ArrayList<User> testingList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,31 +53,6 @@ public class LeaderBoardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_leaderboard);
 
         setTitle("Leaderboard");
-
-        testingList = new ArrayList<>();
-
-        User user1 = new User("001", 105);
-        User user2 = new User("002", 75);
-        User user3 = new User("003", 50);
-        User user4 = new User("004", 25);
-        User user5 = new User("005", 29);
-        User user6 = new User("006", 12);
-        User user7 = new User("007", 0);
-        User user8 = new User("008", 100);
-        User user9 = new User("009", 48);
-        User user10 = new User("010", 62);
-
-       testingList.add(user5);
-       testingList.add(user2);
-       testingList.add(user1);
-       testingList.add(user3);
-       testingList.add(user4);
-       testingList.add(user6);
-       testingList.add(user10);
-       testingList.add(user8);
-       testingList.add(user7);
-       testingList.add(user9);
-
 
         mAllUserList = new ArrayList<>();
 
@@ -139,14 +113,10 @@ public class LeaderBoardActivity extends AppCompatActivity {
             mAllUserList = Arrays.asList(sharedPrefsUserList);
             mAllUserList = new ArrayList<>(mAllUserList);
 
-            userListSizeReference = mAllUserList.size();
-            Log.d(TAG, "onCreate: userListSizeReference = " + userListSizeReference);
+            // Sort the user list by high score priority
+            Collections.sort(mAllUserList, new CustomComparator());
 
-
-            ArrayList<User> sortedUserList = sortHighScores(testingList);
-
-
-            userAdapter = new UserAdapter(this, sortedUserList);
+            userAdapter = new UserAdapter(this, mAllUserList);
             userRecyclerView.setAdapter(userAdapter);
         }
 
@@ -224,43 +194,6 @@ public class LeaderBoardActivity extends AppCompatActivity {
         );
     }
 
-    // Compare each user to each other to find the high scorer
-    // At the end of the loop I should have the highest score holder in maxUser
-    // Add maxUser to the sortedUserList
-    // Remove maxUser from the originalUserList
-    // Run method again recursively, but with the top scorer removed.
-    // End with a sorted list of top scorers, descending from high to low
-    public ArrayList<User> sortHighScores(List<User> originalList) {
-
-        ArrayList<User> sortedUserList = new ArrayList<>();
-
-        User maxUser = null;
-        int maxScore = originalList.get(0).getHighScore();
-
-        for (int i = 0; i <= originalList.size() - 1; i++) {
-
-            int nextScore;
-            if (originalList.size() > 1 && i < originalList.size() - 1) {
-                nextScore = originalList.get(i + 1).getHighScore();
-
-                if (nextScore >= maxScore) {
-                    maxScore = nextScore;
-                    maxUser = originalList.get(i);
-                    Log.d(TAG, "sortHighScores: High score is currently: " + maxScore );
-
-                }
-            }
-        }
-
-        sortedUserList.add(maxUser);
-        originalList.remove(maxUser);
-
-        if (sortedUserList.size() < userListSizeReference) {
-            sortHighScores(originalList);
-        }
-
-        return sortedUserList;
-    }
 
     // Set button to enabled if newUserAC > 2 characters
     public void enableSubmitIfReady() {

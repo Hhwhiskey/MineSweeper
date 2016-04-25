@@ -43,7 +43,7 @@ public class Block extends Button {
     public void plantMine() {
         isMine = true;
 
-        this.setBackgroundResource(R.drawable.ic_bomb_black);
+//        this.setBackgroundResource(R.drawable.ic_bomb_black);
 
         MINE_COUNT++;
     }
